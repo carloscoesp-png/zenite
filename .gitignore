@@ -1,0 +1,9 @@
+# Pacote gerado para o Netlify Drop
+publicar/
+
+# Configuração local do Claude
+.claude/
+
+# Planilha da TACO e saídas temporárias da conversão
+*.xlsx
+nomes.txt
