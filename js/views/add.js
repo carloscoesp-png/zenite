@@ -6,10 +6,13 @@ import { esc, n0, n1, num, dateKey, toast } from '../ui.js';
 const sourceOf = (f) => (f.custom ? 'usuario' : f.source || 'taco');
 const portionText = (f) => (f.portion ? `${f.portion} (${n0(f.portionG)} g)` : 'por 100 g');
 
-// Atalhos de quantidade: múltiplos da porção caseira, ou gramas fixas quando não há porção.
-const quickAmounts = (f) => f.portion
-  ? [0.5, 1, 2].map((k) => ({ grams: Math.round(f.portionG * k), label: `${n1(k)}× ${f.portion}` }))
-  : [50, 100, 200].map((g) => ({ grams: g, label: `${g} g` }));
+// Atalhos de quantidade: porções próprias do prato, múltiplos da porção caseira,
+// ou gramas fixas quando não há porção.
+const quickAmounts = (f) => {
+  if (f.portions) return f.portions;
+  if (f.portion) return [0.5, 1, 2].map((k) => ({ grams: Math.round(f.portionG * k), label: `${n1(k)}× ${f.portion}` }));
+  return [50, 100, 200].map((g) => ({ grams: g, label: `${g} g` }));
+};
 
 export function render(root, params) {
   const today = dateKey();
@@ -77,6 +80,13 @@ export function render(root, params) {
         <div class="chips" style="margin-bottom:12px">
           ${quickAmounts(food).map((q) => `<button type="button" class="chip" data-grams="${q.grams}">${esc(q.label)}</button>`).join('')}
         </div>
+        ${food.ingredients ? `
+          <details class="small" style="margin-bottom:12px">
+            <summary class="muted">Ingredientes de 1 ${esc(food.portion)} (receita padrão)</summary>
+            <ul class="muted" style="margin:6px 0 0; padding-left:18px">
+              ${food.ingredients.map((i) => `<li>${esc(i.name)}: ${n0(i.grams)} g</li>`).join('')}
+            </ul>
+          </details>` : ''}
         <label for="grams">Quantidade (g)</label>
         <input id="grams" inputmode="decimal" value="${food.portionG}">
         <div class="macros-preview" id="preview"></div>

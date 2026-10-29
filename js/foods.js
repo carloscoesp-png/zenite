@@ -1,10 +1,17 @@
 // Banco de alimentos: tabela TACO oficial + uma lista complementar pequena de itens
-// comuns que a TACO não traz (valores médios de rótulo) + os alimentos criados pelo usuário.
+// comuns que a TACO não traz (valores médios de rótulo) + pratos prontos montados com
+// esses ingredientes + os alimentos criados pelo usuário.
 import { TACO, TACO_CATEGORIES } from './taco.js';
 import { portionFor } from './portions.js';
+import { DISHES } from './dishes.js';
 import { normalize } from './ui.js';
 
-export const SOURCE_LABEL = { taco: 'TACO', rotulo: 'Valor médio de rótulo', usuario: 'Meu alimento' };
+export const SOURCE_LABEL = {
+  taco: 'TACO',
+  rotulo: 'Valor médio de rótulo',
+  prato: 'Prato montado (soma dos ingredientes)',
+  usuario: 'Meu alimento',
+};
 
 // Itens fora da TACO. Na TACO o leite fluido está sem análise ("*").
 // Formato: [id, nome, categoria, kcal, proteína, carboidrato, gordura, porção, gramas] por 100 g/ml.
@@ -17,6 +24,9 @@ const COMPLEMENT = [
   ['tapioca-goma', 'Tapioca, goma hidratada', 'Cereais e derivados', 240, 0.0, 60.0, 0.0, 'tapioca média', 60],
   ['whey', 'Whey protein, pó', 'Suplementos', 400, 80.0, 8.0, 6.0, 'dose', 30],
   ['refrigerante-zero', 'Refrigerante, zero açúcar', 'Bebidas (alcoólicas e não alcoólicas)', 0, 0, 0, 0, 'lata (350 ml)', 350],
+  ['pao-hamburguer', 'Pão de hambúrguer ou de cachorro-quente', 'Cereais e derivados', 280, 9.0, 50.0, 4.5, 'unidade', 50],
+  ['salsicha', 'Salsicha', 'Carnes e derivados', 230, 13.0, 4.0, 18.0, 'unidade', 50],
+  ['massa-pizza', 'Massa de pizza ou salgado, assada', 'Cereais e derivados', 270, 8.5, 52.0, 3.0, 'disco médio', 250],
 ];
 
 // Termos extras de busca para nomes da TACO que fogem do jeito comum de falar.
@@ -52,7 +62,41 @@ const complementFoods = COMPLEMENT.map(([id, name, category, kcal, protein, carb
   search: normalize(name),
 }));
 
-export const FOODS = [...tacoFoods, ...complementFoods];
+const baseById = new Map([...tacoFoods, ...complementFoods].map((f) => [f.id, f]));
+
+// Prato pronto: valores por 100 g calculados pela soma dos ingredientes.
+function buildDish(d) {
+  const items = d.items.map(([id, grams]) => ({ food: baseById.get(id), grams }));
+  const missing = items.filter((i) => !i.food);
+  if (missing.length) {
+    console.warn(`Prato ${d.id}: ingrediente não encontrado`, d.items);
+    return null;
+  }
+  const total = items.reduce((s, i) => s + i.grams, 0);
+  const per100 = (key) => Math.round((items.reduce((s, i) => s + i.food[key] * i.grams, 0) / total) * 10) / 10;
+  return {
+    id: `prato-${d.id}`,
+    name: d.name,
+    category: 'Pratos e lanches',
+    kcal: Math.round(per100('kcal')),
+    protein: per100('protein'),
+    carbs: per100('carbs'),
+    fat: per100('fat'),
+    portion: d.portion,
+    portionG: total,
+    portions: d.extra && [
+      { label: `1 ${d.portion}`, grams: total },
+      ...d.extra.map(([label, k]) => ({ label, grams: total * k })),
+    ],
+    ingredients: items.map((i) => ({ name: i.food.name, grams: i.grams })),
+    source: 'prato',
+    search: normalize(`${d.name} ${d.keywords || ''}`),
+  };
+}
+
+const dishFoods = DISHES.map(buildDish).filter(Boolean);
+
+export const FOODS = [...tacoFoods, ...complementFoods, ...dishFoods];
 
 const byId = new Map(FOODS.map((f) => [f.id, f]));
 
@@ -82,7 +126,7 @@ export function searchFoods(query, customFoods = [], limit = 40) {
     .map((f) => {
       let score = 0;
       if (f.source === 'usuario') score -= 5;
-      if (POPULAR.has(f.id)) score -= 3;
+      if (POPULAR.has(f.id) || f.source === 'prato') score -= 3;
       if (f.search.startsWith(words[0])) score -= 2;
       if (!wantsRaw && COOKED_CATEGORIES.has(f.category) && RAW_STATE.test(f.search)) score += 2;
       const tokens = f.search.split(/[^a-z0-9]+/);

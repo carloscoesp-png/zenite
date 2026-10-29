@@ -37,7 +37,8 @@ então para instalar de verdade é preciso publicar (GitHub Pages, Netlify, Verc
 | `js/calc.js` | Metas, IMC e status "dieta cumprida". |
 | `js/taco.js` | TACO 4ª edição oficial (591 alimentos), gerada por `tools/convert_taco.py`. Não editar à mão. |
 | `js/portions.js` | Porções caseiras por regra de nome (a TACO não traz porções). |
-| `js/foods.js` | Junta TACO, lista complementar e alimentos do usuário; busca e ordenação. |
+| `js/dishes.js` | Pratos e lanches prontos (prato feito, X-tudo, pizza, churrasco...) como receitas de ingredientes. |
+| `js/foods.js` | Junta TACO, lista complementar, pratos prontos e alimentos do usuário; busca e ordenação. |
 | `js/ui.js` | Formatação, datas e gráficos em SVG. |
 | `js/views/*` | Telas: cadastro, hoje, adicionar, progresso, perfil. |
 | `sw.js` | Cache offline (rede primeiro). Ao adicionar arquivos, inclua na lista e suba a versão. |
@@ -53,7 +54,10 @@ Reprodução permitida com citação da fonte.
   coco verde e dois tipos de sal.
 - Correção: o item 540 aparece como "L" na planilha; o nome certo é "Feijoada".
 - Lista complementar em `js/foods.js` (identificada no app como "valor médio de rótulo"): leite integral,
-  semidesnatado e desnatado, macarrão cozido, pão de forma tradicional, goma de tapioca, whey e refrigerante zero.
+  semidesnatado e desnatado, macarrão cozido, pão de forma tradicional, goma de tapioca, whey, refrigerante zero,
+  pão de hambúrguer, salsicha e massa de pizza.
+- Pratos prontos em `js/dishes.js` (identificados como "prato montado"): cada um é uma receita padrão e os valores
+  são a soma dos ingredientes. O app mostra a lista de ingredientes de cada prato.
 
 Para regenerar a partir da planilha (precisa de `openpyxl`):
 

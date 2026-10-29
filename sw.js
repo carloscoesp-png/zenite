@@ -1,6 +1,6 @@
 // Service worker: guarda os arquivos do app para funcionar sem internet.
 // Ao adicionar ou remover arquivos da lista, aumente a versão.
-const VERSION = 'lifequest-v0.2.0';
+const VERSION = 'lifequest-v0.3.0';
 const FILES = [
   './',
   'index.html',
@@ -16,6 +16,7 @@ const FILES = [
   'js/foods.js',
   'js/taco.js',
   'js/portions.js',
+  'js/dishes.js',
   'js/views/onboarding.js',
   'js/views/profile-form.js',
   'js/views/today.js',
@@ -41,7 +42,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) return;
   event.respondWith(
-    fetch(event.request)
+    // no-cache: sempre confere com o servidor (resposta 304 rápida quando nada mudou).
+    fetch(event.request, { cache: 'no-cache' })
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();
