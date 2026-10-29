@@ -121,8 +121,11 @@ export function render(root, params) {
       toast(`${food.name} adicionado`);
       location.hash = back;
     });
+    // Sem foco automático no campo: no celular o teclado cobriria a porção e o resumo.
+    // Ao tocar no campo, o valor vem selecionado para ser trocado de uma vez.
+    grams.addEventListener('focus', () => setTimeout(() => grams.select(), 0));
     portion.showModal();
-    grams.select();
+    document.activeElement?.blur();
   }
 
   function openCustom() {
