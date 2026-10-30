@@ -1,5 +1,6 @@
 // Roteador simples por hash: #/hoje, #/adicionar?d=...&m=..., #/progresso, #/perfil, #/cadastro
 import { getState } from './store.js';
+import { t, lang } from './i18n.js';
 import * as onboarding from './views/onboarding.js';
 import * as today from './views/today.js';
 import * as add from './views/add.js';
@@ -27,7 +28,9 @@ function render({ resetScroll }) {
   document.getElementById('app').replaceChildren(root);
   routes[name].render(root, params);
 
+  document.documentElement.lang = lang();
   const tabbar = document.getElementById('tabbar');
+  tabbar.querySelectorAll('[data-i18n]').forEach((el) => (el.textContent = t(el.dataset.i18n)));
   tabbar.hidden = FULLSCREEN.has(name);
   tabbar.querySelectorAll('a').forEach((a) => a.classList.toggle('active', a.dataset.tab === name));
   if (resetScroll) window.scrollTo(0, 0);

@@ -1,43 +1,24 @@
+/* Zênite: preto, dourado e branco. Sempre no modo escuro. */
 :root {
-  --bg: #11141b;
-  --surface: #1a1f29;
-  --surface-2: #232a36;
-  --border: #2e3644;
-  --text: #eef1f6;
-  --text-2: #9aa4b5;
-  --accent: #4ade80;
-  --accent-ink: #062b14;
-  --info: #60a5fa;
-  --warn: #fbbf24;
-  --bad: #f87171;
-  --protein: #f472b6;
-  --carbs: #fbbf24;
-  --fat: #60a5fa;
-  --water: #38bdf8;
+  --bg: #0a0a0b;
+  --surface: #141416;
+  --surface-2: #1e1e22;
+  --border: #2c2a26;
+  --text: #f5f3ee;
+  --text-2: #a39e93;
+  --accent: #d4af37;
+  --accent-2: #f0d77a;
+  --accent-ink: #1a1405;
+  --gold-gradient: linear-gradient(135deg, #f0d77a 0%, #d4af37 45%, #a8841f 100%);
+  --info: #e9e4d8;
+  --bad: #e5675f;
+  --protein: #d4af37;
+  --carbs: #efe2b8;
+  --fat: #a8794a;
+  --water: #c9d3dc;
   --radius: 14px;
   --tabbar-h: 64px;
   color-scheme: dark;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg: #f4f6fa;
-    --surface: #ffffff;
-    --surface-2: #eef1f6;
-    --border: #dde2ea;
-    --text: #141821;
-    --text-2: #5d6779;
-    --accent: #16a34a;
-    --accent-ink: #ffffff;
-    --info: #2563eb;
-    --warn: #b45309;
-    --bad: #dc2626;
-    --protein: #db2777;
-    --carbs: #d97706;
-    --fat: #2563eb;
-    --water: #0284c7;
-    color-scheme: light;
-  }
 }
 
 * { box-sizing: border-box; }
@@ -94,7 +75,7 @@ button, .btn {
   gap: 6px;
 }
 button:active { transform: scale(.98); }
-.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 600; }
+.btn-primary { background: var(--gold-gradient); color: var(--accent-ink); border-color: transparent; font-weight: 700; }
 .btn-ghost { background: transparent; }
 .btn-danger { color: var(--bad); }
 .btn-block { width: 100%; }
@@ -249,5 +230,11 @@ dialog::backdrop { background: rgb(0 0 0 / .55); }
 }
 
 .brand { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; }
-.brand img { width: 40px; height: 40px; border-radius: 10px; }
-.brand b { font-size: 1.3rem; }
+.brand img { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--border); }
+.brand b {
+  font-size: 1.35rem; letter-spacing: .18em; text-transform: uppercase;
+  background: var(--gold-gradient); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+h1 { color: var(--text); }
+.card h2 { color: var(--accent-2); font-weight: 600; letter-spacing: .01em; }

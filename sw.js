@@ -1,6 +1,6 @@
 // Service worker: guarda os arquivos do app para funcionar sem internet.
 // Ao adicionar ou remover arquivos da lista, aumente a versão.
-const VERSION = 'lifequest-v0.3.0';
+const VERSION = 'zenite-v0.4.0';
 const FILES = [
   './',
   'index.html',
@@ -13,6 +13,7 @@ const FILES = [
   'js/store.js',
   'js/calc.js',
   'js/ui.js',
+  'js/i18n.js',
   'js/foods.js',
   'js/taco.js',
   'js/portions.js',

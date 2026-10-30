@@ -1,24 +1,17 @@
 // Cálculos de metas e do status "dieta cumprida" do dia.
+// Os textos (nomes, descrições, status) ficam em i18n.js.
 
 export const ACTIVITY = [
-  { id: 'sedentario', label: 'Sedentário', desc: 'Pouco ou nenhum exercício', factor: 1.2 },
-  { id: 'leve', label: 'Leve', desc: 'Exercício 1 a 3 vezes por semana', factor: 1.375 },
-  { id: 'moderado', label: 'Moderado', desc: 'Exercício 3 a 5 vezes por semana', factor: 1.55 },
-  { id: 'intenso', label: 'Intenso', desc: 'Exercício 6 a 7 vezes por semana', factor: 1.725 },
-  { id: 'atleta', label: 'Muito intenso', desc: 'Treino pesado diário ou trabalho físico', factor: 1.9 },
+  { id: 'sedentario', factor: 1.2 },
+  { id: 'leve', factor: 1.375 },
+  { id: 'moderado', factor: 1.55 },
+  { id: 'intenso', factor: 1.725 },
+  { id: 'atleta', factor: 1.9 },
 ];
 
-export const GOALS = [
-  { id: 'perder', label: 'Perder peso', desc: 'Déficit de cerca de 500 kcal por dia' },
-  { id: 'manter', label: 'Manter peso', desc: 'Calorias iguais ao gasto estimado' },
-  { id: 'ganhar', label: 'Ganhar peso', desc: 'Superávit de cerca de 300 kcal por dia' },
-];
+export const GOALS = ['perder', 'manter', 'ganhar'];
 
-export const NEUTRAL_REASONS = [
-  { id: 'descanso', label: 'Descanso planejado' },
-  { id: 'doenca', label: 'Doença' },
-  { id: 'lesao', label: 'Lesão ou recuperação' },
-];
+export const NEUTRAL_REASONS = ['descanso', 'doenca', 'lesao'];
 
 // Margem para considerar a dieta cumprida: calorias dentro de ±10% da meta.
 export const DIET_TOLERANCE = 0.1;
@@ -63,11 +56,12 @@ export function bmi(weightKg, heightCm) {
   return weightKg / (m * m);
 }
 
+// Chave de tradução da faixa de IMC.
 export function bmiCategory(value) {
-  if (value < 18.5) return 'Abaixo do peso';
-  if (value < 25) return 'Peso adequado';
-  if (value < 30) return 'Sobrepeso';
-  return 'Obesidade';
+  if (value < 18.5) return 'bmi.under';
+  if (value < 25) return 'bmi.normal';
+  if (value < 30) return 'bmi.over';
+  return 'bmi.obese';
 }
 
 export function totals(day) {
@@ -91,20 +85,16 @@ export function dietRange(targetKcal) {
 
 // Status da dieta no dia. Ausência de registro nunca é tratada como falha.
 // code: cumprida | andamento | acima | fora | sem-registro | neutro
+// key:  chave de tradução do texto ("status.<...>")
 export function dayStatus(day, date, today) {
-  if (day.neutral) return { code: 'neutro', label: 'Dia neutro', cls: 'neutral' };
+  const st = (code, key, cls) => ({ code, key: `status.${key}`, cls });
+  if (day.neutral) return st('neutro', 'neutro', 'neutral');
   if (!day.entries.length || !day.targets) {
-    return date === today
-      ? { code: 'andamento', label: 'Sem registros ainda', cls: 'info' }
-      : { code: 'sem-registro', label: 'Sem registro', cls: 'neutral' };
+    return date === today ? st('andamento', 'vazio', 'info') : st('sem-registro', 'sem-registro', 'neutral');
   }
   const { kcal } = totals(day);
   const { min, max } = dietRange(day.targets.kcal);
-  if (kcal >= min && kcal <= max) return { code: 'cumprida', label: 'Dieta cumprida', cls: 'ok' };
-  if (date === today) {
-    return kcal > max
-      ? { code: 'acima', label: 'Acima da meta', cls: 'bad' }
-      : { code: 'andamento', label: 'Em andamento', cls: 'info' };
-  }
-  return { code: 'fora', label: kcal > max ? 'Acima da meta' : 'Abaixo da meta', cls: 'bad' };
+  if (kcal >= min && kcal <= max) return st('cumprida', 'cumprida', 'ok');
+  if (date === today) return kcal > max ? st('acima', 'acima', 'bad') : st('andamento', 'andamento', 'info');
+  return st('fora', kcal > max ? 'acima' : 'abaixo', 'bad');
 }

@@ -1,6 +1,7 @@
-# LifeQuest — MVP nutricional
+# Zênite — MVP nutricional
 
 Web app instalável (PWA) com contador nutricional, metas, hidratação e acompanhamento de peso.
+Identidade: preto, dourado e branco, sempre em modo escuro. Interface em português, inglês e espanhol.
 Sem dependências e sem etapa de build: HTML, CSS e JavaScript puro (módulos ES).
 Os dados ficam no próprio aparelho (`localStorage`). Não há servidor nem login nesta fase.
 
@@ -33,6 +34,7 @@ então para instalar de verdade é preciso publicar (GitHub Pages, Netlify, Verc
 
 | Arquivo | Papel |
 | --- | --- |
+| `js/i18n.js` | Textos da interface em pt-BR, en e es (`t('chave')`). Nomes de alimentos e porções ficam em português. |
 | `js/store.js` | Estado e persistência. Cada dia guarda cópia das metas e dos nutrientes, para o histórico não mudar. |
 | `js/calc.js` | Metas, IMC e status "dieta cumprida". |
 | `js/taco.js` | TACO 4ª edição oficial (591 alimentos), gerada por `tools/convert_taco.py`. Não editar à mão. |

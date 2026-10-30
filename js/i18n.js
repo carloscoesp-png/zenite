@@ -1,0 +1,354 @@
+// Traduções da interface: português (padrão), inglês e espanhol.
+// Os nomes dos alimentos e porções vêm da TACO e ficam em português.
+import { getState } from './store.js';
+
+export const LANGS = [
+  { id: 'pt-BR', label: 'Português', locale: 'pt-BR' },
+  { id: 'en', label: 'English', locale: 'en-US' },
+  { id: 'es', label: 'Español', locale: 'es-ES' },
+];
+
+const DICT = {
+  'pt-BR': {
+    'tab.today': 'Hoje', 'tab.progress': 'Progresso', 'tab.profile': 'Perfil',
+    'lang.label': 'Idioma',
+    'common.save': 'Salvar', 'common.cancel': 'Cancelar', 'common.back': 'Voltar', 'common.add': 'Adicionar',
+    'common.item': 'item', 'common.items': 'itens',
+
+    'meal.cafe': 'Café da manhã', 'meal.almoco': 'Almoço', 'meal.lanche': 'Lanche', 'meal.jantar': 'Jantar', 'meal.ceia': 'Ceia',
+
+    'activity.sedentario': 'Sedentário', 'activity.sedentario.desc': 'Pouco ou nenhum exercício',
+    'activity.leve': 'Leve', 'activity.leve.desc': 'Exercício 1 a 3 vezes por semana',
+    'activity.moderado': 'Moderado', 'activity.moderado.desc': 'Exercício 3 a 5 vezes por semana',
+    'activity.intenso': 'Intenso', 'activity.intenso.desc': 'Exercício 6 a 7 vezes por semana',
+    'activity.atleta': 'Muito intenso', 'activity.atleta.desc': 'Treino pesado diário ou trabalho físico',
+    'goal.perder': 'Perder peso', 'goal.perder.desc': 'Déficit de cerca de 500 kcal por dia',
+    'goal.manter': 'Manter peso', 'goal.manter.desc': 'Calorias iguais ao gasto estimado',
+    'goal.ganhar': 'Ganhar peso', 'goal.ganhar.desc': 'Superávit de cerca de 300 kcal por dia',
+    'neutral.descanso': 'Descanso planejado', 'neutral.doenca': 'Doença', 'neutral.lesao': 'Lesão ou recuperação',
+
+    'status.cumprida': 'Dieta cumprida', 'status.andamento': 'Em andamento', 'status.vazio': 'Sem registros ainda',
+    'status.acima': 'Acima da meta', 'status.abaixo': 'Abaixo da meta', 'status.sem-registro': 'Sem registro',
+    'status.neutro': 'Dia neutro',
+    'bmi.under': 'Abaixo do peso', 'bmi.normal': 'Peso adequado', 'bmi.over': 'Sobrepeso', 'bmi.obese': 'Obesidade',
+    'source.taco': 'TACO', 'source.rotulo': 'Valor médio de rótulo',
+    'source.prato': 'Prato montado (soma dos ingredientes)', 'source.usuario': 'Meu alimento',
+    'macro.protein': 'Proteína', 'macro.carbs': 'Carboidratos', 'macro.fat': 'Gorduras',
+    'macro.short.protein': 'proteína', 'macro.short.carbs': 'carbo', 'macro.short.fat': 'gordura',
+
+    'onb.intro': 'Conte um pouco sobre você. Com isso o app calcula suas metas diárias de calorias, macronutrientes e água.',
+    'onb.consent': 'Concordo em registrar meus dados de saúde no Zênite.',
+    'onb.consentHint': 'Nesta versão tudo fica guardado só neste aparelho. Nada é enviado para servidores.',
+    'onb.submit': 'Calcular minhas metas', 'onb.consentRequired': 'É preciso concordar para continuar.',
+    'onb.done': 'Metas calculadas. Bem-vindo!',
+
+    'pf.name': 'Como quer ser chamado?', 'pf.sex': 'Sexo biológico', 'pf.choose': 'Escolha',
+    'pf.female': 'Feminino', 'pf.male': 'Masculino', 'pf.birth': 'Data de nascimento',
+    'pf.sexHint': 'O sexo biológico é usado só para estimar o gasto calórico.',
+    'pf.height': 'Altura (cm)', 'pf.weight': 'Peso atual (kg)', 'pf.fat': '% de gordura (opcional)',
+    'pf.targetWeight': 'Peso desejado (opcional)', 'pf.activity': 'Nível de atividade', 'pf.goal': 'Objetivo',
+    'err.name': 'Informe seu nome.', 'err.sex': 'Escolha o sexo biológico.', 'err.birth': 'Informe a data de nascimento.',
+    'err.age': 'O Zênite é para pessoas de 14 a 100 anos.', 'err.height': 'Altura deve estar entre 100 e 250 cm.',
+    'err.weight': 'Peso deve estar entre 30 e 350 kg.', 'err.fat': 'Percentual de gordura deve estar entre 3 e 70%.',
+    'err.targetWeight': 'Peso desejado deve estar entre 30 e 350 kg.',
+    'err.activity': 'Escolha o nível de atividade.', 'err.goal': 'Escolha o objetivo.',
+
+    'today.today': 'Hoje', 'today.yesterday': 'Ontem', 'today.prevDay': 'Dia anterior', 'today.nextDay': 'Próximo dia',
+    'today.calories': 'Calorias', 'today.remaining': 'Faltam <b>{n}</b> kcal', 'today.over': 'Passou <b>{n}</b> kcal da meta',
+    'today.target': 'Meta {n} kcal', 'today.range': 'Dieta cumprida entre {min} e {max} kcal',
+    'today.water': 'Água', 'today.add': '+ Adicionar',
+    'today.repeatYesterday': '↻ Repetir de ontem ({n} {items}, {kcal} kcal)',
+    'today.repeatPrevious': '↻ Repetir do dia anterior ({n} {items}, {kcal} kcal)',
+    'today.copied': 'Itens copiados', 'today.removed': 'Item removido',
+    'today.neutral': 'Dia neutro',
+    'today.neutralHelp': 'Use em dias de descanso planejado, doença ou lesão. O dia não conta como cumprido nem como falha.',
+    'today.normalDay': 'Dia normal', 'today.neutralMarked': 'Dia marcado como neutro',
+    'today.editAria': 'Editar {name}', 'today.removeAria': 'Remover {name}', 'today.macroLine': 'P {p} · C {c} · G {f}',
+    'qty.label': 'Quantidade (g)', 'qty.error': 'Informe uma quantidade entre 1 e 5000 g.', 'qty.updated': 'Quantidade atualizada',
+
+    'add.search': 'Buscar alimento', 'add.newFood': '+ Criar alimento',
+    'add.sourceNote': 'Valores por 100 g da Tabela Brasileira de Composição de Alimentos (TACO, 4ª edição, NEPA/Unicamp). Itens que a TACO não traz aparecem como "valor médio de rótulo".',
+    'add.favorites': 'Favoritos', 'add.recents': 'Recentes', 'add.results': 'Resultados',
+    'add.typeToSearch': 'Digite o nome de um alimento para buscar.',
+    'add.noResults': 'Nenhum alimento encontrado. Você pode criar um com os dados do rótulo.',
+    'add.per100': 'por 100 g', 'add.kcalPer100': '{n} kcal/100 g', 'add.kcalPer100Long': '{n} kcal por 100 g',
+    'add.ingredients': 'Ingredientes de 1 {portion} (receita padrão)', 'add.favorite': 'Favorito',
+    'add.favAdded': 'Adicionado aos favoritos', 'add.favRemoved': 'Removido dos favoritos', 'add.added': '{name} adicionado',
+    'custom.title': 'Criar alimento', 'custom.help': 'Use os dados do rótulo, sempre por 100 g ou 100 ml.',
+    'custom.name': 'Nome', 'custom.kcal': 'Calorias (kcal)', 'custom.protein': 'Proteína (g)',
+    'custom.carbs': 'Carboidrato (g)', 'custom.fat': 'Gordura (g)', 'custom.portion': 'Porção',
+    'custom.portionG': 'Gramas da porção', 'custom.portionPh': 'unidade', 'custom.defaultPortion': 'porção',
+    'custom.errName': 'Informe o nome.', 'custom.errValues': 'Preencha calorias e macronutrientes com números válidos.',
+    'custom.saved': 'Alimento criado',
+
+    'prog.title': 'Progresso', 'prog.weight': 'Peso', 'prog.current': 'atual', 'prog.sinceStart': 'desde o início',
+    'prog.bmi': 'IMC', 'range.week': 'Semana', 'range.month': 'Mês', 'range.year': 'Ano', 'range.all': 'Tudo',
+    'range.aria': 'Período', 'prog.noWeights': 'Nenhuma pesagem neste período.',
+    'prog.bmiHint': 'O IMC é uma referência geral e não considera massa muscular.',
+    'prog.log': 'Registrar pesagem', 'prog.kg': 'Peso (kg)', 'prog.fatOpt': '% gordura (opcional)', 'prog.date': 'Data',
+    'prog.save': 'Salvar pesagem', 'prog.recent': 'Últimas pesagens', 'prog.deleteAria': 'Apagar pesagem',
+    'prog.confirmDelete': 'Apagar esta pesagem?', 'prog.diet4w': 'Dieta nas últimas 4 semanas',
+    'prog.dietCount': 'Dieta cumprida em <b>{done}</b> de {total} dias registrados.',
+    'prog.dietEmpty': 'Os dias aparecem aqui conforme você registra refeições.',
+    'prog.weekdays': 'S,T,Q,Q,S,S,D',
+    'legend.ok': 'Cumprida', 'legend.bad': 'Fora da meta', 'legend.none': 'Sem registro ou neutro',
+    'prog.cal14': 'Calorias nos últimos 14 dias', 'prog.bandHint': 'A faixa dourada clara é a margem de ±10% da meta.',
+    'prog.errWeight': 'Informe um peso entre 30 e 350 kg.', 'prog.errFat': '% de gordura deve estar entre 3 e 70.',
+    'prog.errDate': 'A data não pode ser no futuro.', 'prog.saved': 'Pesagem salva',
+    'chart.goal': 'meta {n} kg', 'chart.weightAria': 'Evolução do peso', 'chart.calAria': 'Calorias por dia',
+    'chart.ringAria': '{a} de {b} kcal',
+
+    'prof.hello': 'Olá, {name}', 'prof.targets': 'Metas diárias',
+    'prof.tdee': 'Gasto estimado: {tdee} kcal por dia. Sugestão para o seu objetivo: {kcal} kcal.',
+    'prof.kcal': 'Calorias', 'prof.water': 'Água', 'prof.useSuggestion': 'Usar sugestão', 'prof.saveTargets': 'Salvar metas',
+    'prof.errKcal': 'Calorias devem estar entre 800 e 6000.', 'prof.errMacros': 'Revise os macronutrientes.',
+    'prof.errWater': 'Água deve estar entre 500 e 8000 ml.', 'prof.targetsSaved': 'Metas salvas',
+    'prof.myData': 'Meus dados', 'prof.recalc': 'Recalcular as metas com os novos dados', 'prof.saveData': 'Salvar dados',
+    'prof.dataSaved': 'Dados salvos', 'prof.yourData': 'Seus dados',
+    'prof.dataHelp': 'Tudo fica guardado só neste aparelho. Faça uma cópia de segurança de vez em quando, principalmente antes de trocar de celular ou limpar o navegador.',
+    'prof.export': 'Exportar cópia', 'prof.import': 'Importar cópia', 'prof.reset': 'Apagar todos os dados',
+    'prof.confirmImport': 'Substituir os dados deste aparelho pela cópia importada?', 'prof.imported': 'Cópia importada',
+    'prof.invalid': 'Arquivo inválido',
+    'prof.confirmReset': 'Apagar todos os dados do Zênite neste aparelho? Isso não pode ser desfeito.',
+    'prof.version': 'Zênite · MVP nutricional · versão {v}',
+  },
+
+  en: {
+    'tab.today': 'Today', 'tab.progress': 'Progress', 'tab.profile': 'Profile',
+    'lang.label': 'Language',
+    'common.save': 'Save', 'common.cancel': 'Cancel', 'common.back': 'Back', 'common.add': 'Add',
+    'common.item': 'item', 'common.items': 'items',
+
+    'meal.cafe': 'Breakfast', 'meal.almoco': 'Lunch', 'meal.lanche': 'Snack', 'meal.jantar': 'Dinner', 'meal.ceia': 'Late-night snack',
+
+    'activity.sedentario': 'Sedentary', 'activity.sedentario.desc': 'Little or no exercise',
+    'activity.leve': 'Light', 'activity.leve.desc': 'Exercise 1 to 3 times a week',
+    'activity.moderado': 'Moderate', 'activity.moderado.desc': 'Exercise 3 to 5 times a week',
+    'activity.intenso': 'Intense', 'activity.intenso.desc': 'Exercise 6 to 7 times a week',
+    'activity.atleta': 'Very intense', 'activity.atleta.desc': 'Hard daily training or a physical job',
+    'goal.perder': 'Lose weight', 'goal.perder.desc': 'About 500 kcal daily deficit',
+    'goal.manter': 'Maintain weight', 'goal.manter.desc': 'Calories equal to estimated expenditure',
+    'goal.ganhar': 'Gain weight', 'goal.ganhar.desc': 'About 300 kcal daily surplus',
+    'neutral.descanso': 'Planned rest', 'neutral.doenca': 'Illness', 'neutral.lesao': 'Injury or recovery',
+
+    'status.cumprida': 'Diet on target', 'status.andamento': 'In progress', 'status.vazio': 'No entries yet',
+    'status.acima': 'Above target', 'status.abaixo': 'Below target', 'status.sem-registro': 'No entries',
+    'status.neutro': 'Neutral day',
+    'bmi.under': 'Underweight', 'bmi.normal': 'Healthy weight', 'bmi.over': 'Overweight', 'bmi.obese': 'Obesity',
+    'source.taco': 'TACO', 'source.rotulo': 'Average label value',
+    'source.prato': 'Composed dish (sum of ingredients)', 'source.usuario': 'My food',
+    'macro.protein': 'Protein', 'macro.carbs': 'Carbs', 'macro.fat': 'Fat',
+    'macro.short.protein': 'protein', 'macro.short.carbs': 'carbs', 'macro.short.fat': 'fat',
+
+    'onb.intro': 'Tell us a bit about yourself. The app uses this to set your daily calorie, macronutrient and water targets.',
+    'onb.consent': 'I agree to record my health data in Zênite.',
+    'onb.consentHint': 'In this version everything stays on this device. Nothing is sent to servers.',
+    'onb.submit': 'Calculate my targets', 'onb.consentRequired': 'You need to agree to continue.',
+    'onb.done': 'Targets set. Welcome!',
+
+    'pf.name': 'What should we call you?', 'pf.sex': 'Biological sex', 'pf.choose': 'Choose',
+    'pf.female': 'Female', 'pf.male': 'Male', 'pf.birth': 'Date of birth',
+    'pf.sexHint': 'Biological sex is only used to estimate energy expenditure.',
+    'pf.height': 'Height (cm)', 'pf.weight': 'Current weight (kg)', 'pf.fat': 'Body fat % (optional)',
+    'pf.targetWeight': 'Goal weight (optional)', 'pf.activity': 'Activity level', 'pf.goal': 'Goal',
+    'err.name': 'Enter your name.', 'err.sex': 'Choose your biological sex.', 'err.birth': 'Enter your date of birth.',
+    'err.age': 'Zênite is for people aged 14 to 100.', 'err.height': 'Height must be between 100 and 250 cm.',
+    'err.weight': 'Weight must be between 30 and 350 kg.', 'err.fat': 'Body fat must be between 3 and 70%.',
+    'err.targetWeight': 'Goal weight must be between 30 and 350 kg.',
+    'err.activity': 'Choose your activity level.', 'err.goal': 'Choose your goal.',
+
+    'today.today': 'Today', 'today.yesterday': 'Yesterday', 'today.prevDay': 'Previous day', 'today.nextDay': 'Next day',
+    'today.calories': 'Calories', 'today.remaining': '<b>{n}</b> kcal left', 'today.over': '<b>{n}</b> kcal over target',
+    'today.target': 'Target {n} kcal', 'today.range': 'On target between {min} and {max} kcal',
+    'today.water': 'Water', 'today.add': '+ Add',
+    'today.repeatYesterday': '↻ Repeat yesterday ({n} {items}, {kcal} kcal)',
+    'today.repeatPrevious': '↻ Repeat previous day ({n} {items}, {kcal} kcal)',
+    'today.copied': 'Items copied', 'today.removed': 'Item removed',
+    'today.neutral': 'Neutral day',
+    'today.neutralHelp': 'Use on planned rest, illness or injury days. The day counts neither as on target nor as a miss.',
+    'today.normalDay': 'Normal day', 'today.neutralMarked': 'Day marked as neutral',
+    'today.editAria': 'Edit {name}', 'today.removeAria': 'Remove {name}', 'today.macroLine': 'P {p} · C {c} · F {f}',
+    'qty.label': 'Amount (g)', 'qty.error': 'Enter an amount between 1 and 5000 g.', 'qty.updated': 'Amount updated',
+
+    'add.search': 'Search food', 'add.newFood': '+ Create food',
+    'add.sourceNote': 'Values per 100 g from the Brazilian Food Composition Table (TACO, 4th edition, NEPA/Unicamp). Food names are in Portuguese. Items not in TACO show as "average label value".',
+    'add.favorites': 'Favorites', 'add.recents': 'Recent', 'add.results': 'Results',
+    'add.typeToSearch': 'Type a food name to search (names are in Portuguese).',
+    'add.noResults': 'No food found. You can create one from the label.',
+    'add.per100': 'per 100 g', 'add.kcalPer100': '{n} kcal/100 g', 'add.kcalPer100Long': '{n} kcal per 100 g',
+    'add.ingredients': 'Ingredients for 1 {portion} (standard recipe)', 'add.favorite': 'Favorite',
+    'add.favAdded': 'Added to favorites', 'add.favRemoved': 'Removed from favorites', 'add.added': '{name} added',
+    'custom.title': 'Create food', 'custom.help': 'Use the label data, always per 100 g or 100 ml.',
+    'custom.name': 'Name', 'custom.kcal': 'Calories (kcal)', 'custom.protein': 'Protein (g)',
+    'custom.carbs': 'Carbs (g)', 'custom.fat': 'Fat (g)', 'custom.portion': 'Serving',
+    'custom.portionG': 'Serving size (g)', 'custom.portionPh': 'unit', 'custom.defaultPortion': 'serving',
+    'custom.errName': 'Enter a name.', 'custom.errValues': 'Fill in calories and macros with valid numbers.',
+    'custom.saved': 'Food created',
+
+    'prog.title': 'Progress', 'prog.weight': 'Weight', 'prog.current': 'current', 'prog.sinceStart': 'since start',
+    'prog.bmi': 'BMI', 'range.week': 'Week', 'range.month': 'Month', 'range.year': 'Year', 'range.all': 'All',
+    'range.aria': 'Period', 'prog.noWeights': 'No weigh-ins in this period.',
+    'prog.bmiHint': "BMI is a general reference and doesn't account for muscle mass.",
+    'prog.log': 'Log weight', 'prog.kg': 'Weight (kg)', 'prog.fatOpt': 'Body fat % (optional)', 'prog.date': 'Date',
+    'prog.save': 'Save weigh-in', 'prog.recent': 'Recent weigh-ins', 'prog.deleteAria': 'Delete weigh-in',
+    'prog.confirmDelete': 'Delete this weigh-in?', 'prog.diet4w': 'Diet over the last 4 weeks',
+    'prog.dietCount': 'On target <b>{done}</b> of {total} logged days.',
+    'prog.dietEmpty': 'Days show up here as you log meals.',
+    'prog.weekdays': 'M,T,W,T,F,S,S',
+    'legend.ok': 'On target', 'legend.bad': 'Off target', 'legend.none': 'No entries or neutral',
+    'prog.cal14': 'Calories over the last 14 days', 'prog.bandHint': 'The light gold band is the ±10% target margin.',
+    'prog.errWeight': 'Enter a weight between 30 and 350 kg.', 'prog.errFat': 'Body fat must be between 3 and 70.',
+    'prog.errDate': "The date can't be in the future.", 'prog.saved': 'Weigh-in saved',
+    'chart.goal': 'goal {n} kg', 'chart.weightAria': 'Weight trend', 'chart.calAria': 'Calories per day',
+    'chart.ringAria': '{a} of {b} kcal',
+
+    'prof.hello': 'Hi, {name}', 'prof.targets': 'Daily targets',
+    'prof.tdee': 'Estimated expenditure: {tdee} kcal per day. Suggested for your goal: {kcal} kcal.',
+    'prof.kcal': 'Calories', 'prof.water': 'Water', 'prof.useSuggestion': 'Use suggestion', 'prof.saveTargets': 'Save targets',
+    'prof.errKcal': 'Calories must be between 800 and 6000.', 'prof.errMacros': 'Check the macronutrients.',
+    'prof.errWater': 'Water must be between 500 and 8000 ml.', 'prof.targetsSaved': 'Targets saved',
+    'prof.myData': 'My details', 'prof.recalc': 'Recalculate targets with the new details', 'prof.saveData': 'Save details',
+    'prof.dataSaved': 'Details saved', 'prof.yourData': 'Your data',
+    'prof.dataHelp': 'Everything is stored only on this device. Make a backup now and then, especially before switching phones or clearing the browser.',
+    'prof.export': 'Export backup', 'prof.import': 'Import backup', 'prof.reset': 'Delete all data',
+    'prof.confirmImport': "Replace this device's data with the imported backup?", 'prof.imported': 'Backup imported',
+    'prof.invalid': 'Invalid file',
+    'prof.confirmReset': "Delete all Zênite data on this device? This can't be undone.",
+    'prof.version': 'Zênite · nutrition MVP · version {v}',
+  },
+
+  es: {
+    'tab.today': 'Hoy', 'tab.progress': 'Progreso', 'tab.profile': 'Perfil',
+    'lang.label': 'Idioma',
+    'common.save': 'Guardar', 'common.cancel': 'Cancelar', 'common.back': 'Volver', 'common.add': 'Agregar',
+    'common.item': 'ítem', 'common.items': 'ítems',
+
+    'meal.cafe': 'Desayuno', 'meal.almoco': 'Almuerzo', 'meal.lanche': 'Merienda', 'meal.jantar': 'Cena', 'meal.ceia': 'Tentempié nocturno',
+
+    'activity.sedentario': 'Sedentario', 'activity.sedentario.desc': 'Poco o ningún ejercicio',
+    'activity.leve': 'Ligero', 'activity.leve.desc': 'Ejercicio de 1 a 3 veces por semana',
+    'activity.moderado': 'Moderado', 'activity.moderado.desc': 'Ejercicio de 3 a 5 veces por semana',
+    'activity.intenso': 'Intenso', 'activity.intenso.desc': 'Ejercicio de 6 a 7 veces por semana',
+    'activity.atleta': 'Muy intenso', 'activity.atleta.desc': 'Entrenamiento fuerte diario o trabajo físico',
+    'goal.perder': 'Perder peso', 'goal.perder.desc': 'Déficit de unas 500 kcal al día',
+    'goal.manter': 'Mantener peso', 'goal.manter.desc': 'Calorías iguales al gasto estimado',
+    'goal.ganhar': 'Ganar peso', 'goal.ganhar.desc': 'Superávit de unas 300 kcal al día',
+    'neutral.descanso': 'Descanso planificado', 'neutral.doenca': 'Enfermedad', 'neutral.lesao': 'Lesión o recuperación',
+
+    'status.cumprida': 'Dieta cumplida', 'status.andamento': 'En curso', 'status.vazio': 'Sin registros aún',
+    'status.acima': 'Por encima de la meta', 'status.abaixo': 'Por debajo de la meta', 'status.sem-registro': 'Sin registro',
+    'status.neutro': 'Día neutro',
+    'bmi.under': 'Bajo peso', 'bmi.normal': 'Peso adecuado', 'bmi.over': 'Sobrepeso', 'bmi.obese': 'Obesidad',
+    'source.taco': 'TACO', 'source.rotulo': 'Valor medio de etiqueta',
+    'source.prato': 'Plato armado (suma de ingredientes)', 'source.usuario': 'Mi alimento',
+    'macro.protein': 'Proteína', 'macro.carbs': 'Carbohidratos', 'macro.fat': 'Grasas',
+    'macro.short.protein': 'proteína', 'macro.short.carbs': 'carbos', 'macro.short.fat': 'grasa',
+
+    'onb.intro': 'Cuéntanos un poco sobre ti. Con eso la app calcula tus metas diarias de calorías, macronutrientes y agua.',
+    'onb.consent': 'Acepto registrar mis datos de salud en Zênite.',
+    'onb.consentHint': 'En esta versión todo se guarda solo en este dispositivo. Nada se envía a servidores.',
+    'onb.submit': 'Calcular mis metas', 'onb.consentRequired': 'Debes aceptar para continuar.',
+    'onb.done': 'Metas calculadas. ¡Bienvenido!',
+
+    'pf.name': '¿Cómo quieres que te llamemos?', 'pf.sex': 'Sexo biológico', 'pf.choose': 'Elige',
+    'pf.female': 'Femenino', 'pf.male': 'Masculino', 'pf.birth': 'Fecha de nacimiento',
+    'pf.sexHint': 'El sexo biológico solo se usa para estimar el gasto calórico.',
+    'pf.height': 'Altura (cm)', 'pf.weight': 'Peso actual (kg)', 'pf.fat': '% de grasa (opcional)',
+    'pf.targetWeight': 'Peso deseado (opcional)', 'pf.activity': 'Nivel de actividad', 'pf.goal': 'Objetivo',
+    'err.name': 'Escribe tu nombre.', 'err.sex': 'Elige el sexo biológico.', 'err.birth': 'Indica tu fecha de nacimiento.',
+    'err.age': 'Zênite es para personas de 14 a 100 años.', 'err.height': 'La altura debe estar entre 100 y 250 cm.',
+    'err.weight': 'El peso debe estar entre 30 y 350 kg.', 'err.fat': 'El % de grasa debe estar entre 3 y 70.',
+    'err.targetWeight': 'El peso deseado debe estar entre 30 y 350 kg.',
+    'err.activity': 'Elige el nivel de actividad.', 'err.goal': 'Elige el objetivo.',
+
+    'today.today': 'Hoy', 'today.yesterday': 'Ayer', 'today.prevDay': 'Día anterior', 'today.nextDay': 'Día siguiente',
+    'today.calories': 'Calorías', 'today.remaining': 'Faltan <b>{n}</b> kcal', 'today.over': 'Te pasaste <b>{n}</b> kcal de la meta',
+    'today.target': 'Meta {n} kcal', 'today.range': 'Dieta cumplida entre {min} y {max} kcal',
+    'today.water': 'Agua', 'today.add': '+ Agregar',
+    'today.repeatYesterday': '↻ Repetir de ayer ({n} {items}, {kcal} kcal)',
+    'today.repeatPrevious': '↻ Repetir del día anterior ({n} {items}, {kcal} kcal)',
+    'today.copied': 'Ítems copiados', 'today.removed': 'Ítem eliminado',
+    'today.neutral': 'Día neutro',
+    'today.neutralHelp': 'Úsalo en días de descanso planificado, enfermedad o lesión. El día no cuenta como cumplido ni como fallo.',
+    'today.normalDay': 'Día normal', 'today.neutralMarked': 'Día marcado como neutro',
+    'today.editAria': 'Editar {name}', 'today.removeAria': 'Eliminar {name}', 'today.macroLine': 'P {p} · C {c} · G {f}',
+    'qty.label': 'Cantidad (g)', 'qty.error': 'Indica una cantidad entre 1 y 5000 g.', 'qty.updated': 'Cantidad actualizada',
+
+    'add.search': 'Buscar alimento', 'add.newFood': '+ Crear alimento',
+    'add.sourceNote': 'Valores por 100 g de la Tabla Brasileña de Composición de Alimentos (TACO, 4.ª edición, NEPA/Unicamp). Los nombres de los alimentos están en portugués. Lo que no está en la TACO aparece como "valor medio de etiqueta".',
+    'add.favorites': 'Favoritos', 'add.recents': 'Recientes', 'add.results': 'Resultados',
+    'add.typeToSearch': 'Escribe el nombre de un alimento para buscar (los nombres están en portugués).',
+    'add.noResults': 'No se encontró ningún alimento. Puedes crear uno con los datos de la etiqueta.',
+    'add.per100': 'por 100 g', 'add.kcalPer100': '{n} kcal/100 g', 'add.kcalPer100Long': '{n} kcal por 100 g',
+    'add.ingredients': 'Ingredientes de 1 {portion} (receta estándar)', 'add.favorite': 'Favorito',
+    'add.favAdded': 'Agregado a favoritos', 'add.favRemoved': 'Quitado de favoritos', 'add.added': '{name} agregado',
+    'custom.title': 'Crear alimento', 'custom.help': 'Usa los datos de la etiqueta, siempre por 100 g o 100 ml.',
+    'custom.name': 'Nombre', 'custom.kcal': 'Calorías (kcal)', 'custom.protein': 'Proteína (g)',
+    'custom.carbs': 'Carbohidratos (g)', 'custom.fat': 'Grasa (g)', 'custom.portion': 'Porción',
+    'custom.portionG': 'Gramos de la porción', 'custom.portionPh': 'unidad', 'custom.defaultPortion': 'porción',
+    'custom.errName': 'Escribe el nombre.', 'custom.errValues': 'Completa calorías y macronutrientes con números válidos.',
+    'custom.saved': 'Alimento creado',
+
+    'prog.title': 'Progreso', 'prog.weight': 'Peso', 'prog.current': 'actual', 'prog.sinceStart': 'desde el inicio',
+    'prog.bmi': 'IMC', 'range.week': 'Semana', 'range.month': 'Mes', 'range.year': 'Año', 'range.all': 'Todo',
+    'range.aria': 'Período', 'prog.noWeights': 'No hay pesajes en este período.',
+    'prog.bmiHint': 'El IMC es una referencia general y no considera la masa muscular.',
+    'prog.log': 'Registrar peso', 'prog.kg': 'Peso (kg)', 'prog.fatOpt': '% grasa (opcional)', 'prog.date': 'Fecha',
+    'prog.save': 'Guardar pesaje', 'prog.recent': 'Últimos pesajes', 'prog.deleteAria': 'Borrar pesaje',
+    'prog.confirmDelete': '¿Borrar este pesaje?', 'prog.diet4w': 'Dieta en las últimas 4 semanas',
+    'prog.dietCount': 'Dieta cumplida en <b>{done}</b> de {total} días registrados.',
+    'prog.dietEmpty': 'Los días aparecen aquí a medida que registras comidas.',
+    'prog.weekdays': 'L,M,X,J,V,S,D',
+    'legend.ok': 'Cumplida', 'legend.bad': 'Fuera de meta', 'legend.none': 'Sin registro o neutro',
+    'prog.cal14': 'Calorías en los últimos 14 días', 'prog.bandHint': 'La franja dorada clara es el margen de ±10% de la meta.',
+    'prog.errWeight': 'Indica un peso entre 30 y 350 kg.', 'prog.errFat': 'El % de grasa debe estar entre 3 y 70.',
+    'prog.errDate': 'La fecha no puede ser futura.', 'prog.saved': 'Pesaje guardado',
+    'chart.goal': 'meta {n} kg', 'chart.weightAria': 'Evolución del peso', 'chart.calAria': 'Calorías por día',
+    'chart.ringAria': '{a} de {b} kcal',
+
+    'prof.hello': 'Hola, {name}', 'prof.targets': 'Metas diarias',
+    'prof.tdee': 'Gasto estimado: {tdee} kcal al día. Sugerencia para tu objetivo: {kcal} kcal.',
+    'prof.kcal': 'Calorías', 'prof.water': 'Agua', 'prof.useSuggestion': 'Usar sugerencia', 'prof.saveTargets': 'Guardar metas',
+    'prof.errKcal': 'Las calorías deben estar entre 800 y 6000.', 'prof.errMacros': 'Revisa los macronutrientes.',
+    'prof.errWater': 'El agua debe estar entre 500 y 8000 ml.', 'prof.targetsSaved': 'Metas guardadas',
+    'prof.myData': 'Mis datos', 'prof.recalc': 'Recalcular las metas con los nuevos datos', 'prof.saveData': 'Guardar datos',
+    'prof.dataSaved': 'Datos guardados', 'prof.yourData': 'Tus datos',
+    'prof.dataHelp': 'Todo se guarda solo en este dispositivo. Haz una copia de seguridad de vez en cuando, sobre todo antes de cambiar de teléfono o limpiar el navegador.',
+    'prof.export': 'Exportar copia', 'prof.import': 'Importar copia', 'prof.reset': 'Borrar todos los datos',
+    'prof.confirmImport': '¿Reemplazar los datos de este dispositivo por la copia importada?', 'prof.imported': 'Copia importada',
+    'prof.invalid': 'Archivo no válido',
+    'prof.confirmReset': '¿Borrar todos los datos de Zênite en este dispositivo? No se puede deshacer.',
+    'prof.version': 'Zênite · MVP nutricional · versión {v}',
+  },
+};
+
+function detect() {
+  const nav = (navigator.language || 'pt-BR').toLowerCase();
+  if (nav.startsWith('es')) return 'es';
+  if (nav.startsWith('en')) return 'en';
+  return 'pt-BR';
+}
+
+export function lang() {
+  const chosen = getState().settings?.lang;
+  return DICT[chosen] ? chosen : detect();
+}
+
+export function locale() {
+  return LANGS.find((l) => l.id === lang()).locale;
+}
+
+// t('today.remaining', { n: 300 }) → "Faltam <b>300</b> kcal"
+export function t(key, vars = {}) {
+  const text = DICT[lang()][key] ?? DICT['pt-BR'][key] ?? key;
+  return text.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : ''));
+}
+
+// Seletor de idioma usado no cadastro e no perfil.
+export function langSelect(id = 'lang') {
+  return `
+    <label for="${id}">${t('lang.label')}</label>
+    <select id="${id}" data-lang-select>
+      ${LANGS.map((l) => `<option value="${l.id}" ${l.id === lang() ? 'selected' : ''}>${l.label}</option>`).join('')}
+    </select>`;
+}

@@ -1,12 +1,18 @@
 // Utilitários de interface: formatação, datas, avisos e gráficos em SVG.
+import { t, locale } from './i18n.js';
 
 export const esc = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-const nf0 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
-const nf1 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
-export const n0 = (v) => nf0.format(Math.round(v || 0));
-export const n1 = (v) => nf1.format(v || 0);
+// Formatadores por idioma (o idioma pode mudar com o app aberto).
+const formatters = new Map();
+function nf(digits) {
+  const key = `${locale()}:${digits}`;
+  if (!formatters.has(key)) formatters.set(key, new Intl.NumberFormat(locale(), { maximumFractionDigits: digits }));
+  return formatters.get(key);
+}
+export const n0 = (v) => nf(0).format(Math.round(v || 0));
+export const n1 = (v) => nf(1).format(v || 0);
 
 // Aceita "72,5" e "72.5".
 export function num(v) {
@@ -38,7 +44,7 @@ export function addDays(key, n) {
 }
 
 export function formatDate(key, opts = { day: 'numeric', month: 'short' }) {
-  return parseKey(key).toLocaleDateString('pt-BR', opts).replace('.', '');
+  return parseKey(key).toLocaleDateString(locale(), opts).replace('.', '');
 }
 
 // ---------- Eventos ----------
@@ -65,13 +71,22 @@ export function ring(consumed, target, cls) {
   const c = 2 * Math.PI * r;
   const pct = target > 0 ? Math.min(consumed / target, 1) : 0;
   return `
-    <svg class="ring" viewBox="0 0 120 120" role="img" aria-label="${n0(consumed)} de ${n0(target)} kcal">
+    <svg class="ring" viewBox="0 0 120 120" role="img" aria-label="${t('chart.ringAria', { a: n0(consumed), b: n0(target) })}">
       <circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="10"/>
       ${pct > 0 ? `<circle cx="60" cy="60" r="${r}" fill="none" stroke="${STATUS_COLOR[cls] || STATUS_COLOR.info}" stroke-width="10"
         stroke-linecap="round" stroke-dasharray="${c * pct} ${c}" transform="rotate(-90 60 60)"/>` : ''}
       <text x="60" y="58" text-anchor="middle" font-size="22" font-weight="700">${n0(consumed)}</text>
       <text x="60" y="78" text-anchor="middle" font-size="11" style="fill: var(--text-2)">kcal</text>
     </svg>`;
+}
+
+// Quatro caixinhas com kcal e macros de uma quantidade (janelas de porção e edição).
+export function macrosPreview(n) {
+  return `
+    <div><b>${n0(n.kcal)}</b><small>kcal</small></div>
+    <div><b>${n1(n.protein)}</b><small>${t('macro.short.protein')}</small></div>
+    <div><b>${n1(n.carbs)}</b><small>${t('macro.short.carbs')}</small></div>
+    <div><b>${n1(n.fat)}</b><small>${t('macro.short.fat')}</small></div>`;
 }
 
 export function progressBar(value, target, color) {
@@ -95,11 +110,11 @@ export function lineChart(points, { target, unit = 'kg' } = {}) {
   const ticks = [lo, (lo + hi) / 2, hi];
   const path = points.map((p, i) => `${i ? 'L' : 'M'}${X(xs[i]).toFixed(1)} ${Y(p.value).toFixed(1)}`).join(' ');
   return `
-    <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolução do peso">
+    <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('chart.weightAria')}">
       ${ticks.map((t) => `<line class="grid" x1="${L}" x2="${W - R}" y1="${Y(t)}" y2="${Y(t)}"/>
         <text class="axis-label" x="${L - 6}" y="${Y(t) + 3}" text-anchor="end">${n1(t)}</text>`).join('')}
       ${Number.isFinite(target) ? `<line class="target" x1="${L}" x2="${W - R}" y1="${Y(target)}" y2="${Y(target)}"/>
-        <text class="axis-label" x="${W - R}" y="${Y(target) - 4}" text-anchor="end">meta ${n1(target)} ${unit}</text>` : ''}
+        <text class="axis-label" x="${W - R}" y="${Y(target) - 4}" text-anchor="end">${t('chart.goal', { n: n1(target) })}</text>` : ''}
       <path class="line" d="${path}"/>
       ${points.map((p, i) => `<circle class="dot" cx="${X(xs[i])}" cy="${Y(p.value)}" r="3"><title>${formatDate(p.date)}: ${n1(p.value)} ${unit}</title></circle>`).join('')}
       <text class="axis-label" x="${L}" y="${H - 6}">${formatDate(points[0].date)}</text>
@@ -115,7 +130,7 @@ export function caloriesChart(days) {
   const Y = (v) => T + (1 - v / hi) * (H - T - B);
   const ticks = [0, hi / 2, hi].map((t) => Math.round(t / 100) * 100);
   return `
-    <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Calorias por dia">
+    <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('chart.calAria')}">
       ${ticks.map((t) => `<line class="grid" x1="${L}" x2="${W - R}" y1="${Y(t)}" y2="${Y(t)}"/>
         <text class="axis-label" x="${L - 6}" y="${Y(t) + 3}" text-anchor="end">${n0(t)}</text>`).join('')}
       ${days.map((d, i) => {

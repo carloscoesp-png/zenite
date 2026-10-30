@@ -4,7 +4,10 @@ import {
 } from '../store.js';
 import { totals, dayStatus, dietRange, NEUTRAL_REASONS } from '../calc.js';
 import { findFood } from '../foods.js';
-import { esc, n0, n1, num, dateKey, addDays, formatDate, ring, progressBar, refresh, toast } from '../ui.js';
+import { t } from '../i18n.js';
+import {
+  esc, n0, n1, num, dateKey, addDays, formatDate, ring, progressBar, macrosPreview, refresh, toast,
+} from '../ui.js';
 
 // Valores por 100 g de um item já registrado: do alimento, se ainda existir,
 // senão a partir do próprio registro.
@@ -25,10 +28,10 @@ export function render(root, params) {
   const range = dietRange(targets.kcal);
   const diff = targets.kcal - sum.kcal;
 
-  const title = date === today ? 'Hoje' : date === addDays(today, -1) ? 'Ontem' : formatDate(date, { weekday: 'long' });
-  const remaining = diff >= 0
-    ? `Faltam <b>${n0(diff)}</b> kcal`
-    : `Passou <b>${n0(-diff)}</b> kcal da meta`;
+  const title = date === today
+    ? t('today.today')
+    : date === addDays(today, -1) ? t('today.yesterday') : formatDate(date, { weekday: 'long' });
+  const remaining = diff >= 0 ? t('today.remaining', { n: n0(diff) }) : t('today.over', { n: n0(-diff) });
 
   const macro = (label, value, target, color) => `
     <div class="macro">
@@ -39,30 +42,35 @@ export function render(root, params) {
   const previous = getDay(addDays(date, -1));
 
   const meals = MEALS.map((meal) => {
-    const items = day.entries.filter((e) => e.meal === meal.id);
+    const items = day.entries.filter((e) => e.meal === meal);
     const kcal = items.reduce((s, e) => s + e.kcal, 0);
     // Repetir só aparece com a refeição vazia, para não duplicar sem querer.
-    const prevItems = items.length ? [] : previous.entries.filter((e) => e.meal === meal.id);
+    const prevItems = items.length ? [] : previous.entries.filter((e) => e.meal === meal);
     const prevKcal = prevItems.reduce((s, e) => s + e.kcal, 0);
+    const repeatVars = {
+      n: prevItems.length,
+      items: t(prevItems.length === 1 ? 'common.item' : 'common.items'),
+      kcal: n0(prevKcal),
+    };
     return `
       <section class="card">
         <div class="meal-head">
-          <h3>${meal.label}</h3>
+          <h3>${t(`meal.${meal}`)}</h3>
           <span class="muted small">${items.length ? `${n0(kcal)} kcal` : ''}</span>
         </div>
         ${items.length ? `<div class="entries">${items.map((e) => `
           <div class="entry">
-            <button class="name food-item" style="padding:0" data-edit="${e.id}" aria-label="Editar ${esc(e.name)}">
-              <span>${esc(e.name)}<small>${n0(e.grams)} g · P ${n1(e.protein)} · C ${n1(e.carbs)} · G ${n1(e.fat)}</small></span>
+            <button class="name food-item" style="padding:0" data-edit="${e.id}" aria-label="${esc(t('today.editAria', { name: e.name }))}">
+              <span>${esc(e.name)}<small>${n0(e.grams)} g · ${t('today.macroLine', { p: n1(e.protein), c: n1(e.carbs), f: n1(e.fat) })}</small></span>
             </button>
             <span class="small">${n0(e.kcal)} kcal</span>
-            <button class="btn-ghost icon-btn" data-remove="${e.id}" aria-label="Remover ${esc(e.name)}">✕</button>
+            <button class="btn-ghost icon-btn" data-remove="${e.id}" aria-label="${esc(t('today.removeAria', { name: e.name }))}">✕</button>
           </div>`).join('')}</div>` : ''}
         ${prevItems.length ? `
-          <button class="btn-ghost btn-block" data-repeat="${meal.id}" style="margin-bottom:8px">
-            ↻ Repetir ${date === today ? 'de ontem' : 'do dia anterior'} (${prevItems.length} ${prevItems.length === 1 ? 'item' : 'itens'}, ${n0(prevKcal)} kcal)
+          <button class="btn-ghost btn-block" data-repeat="${meal}" style="margin-bottom:8px">
+            ${t(date === today ? 'today.repeatYesterday' : 'today.repeatPrevious', repeatVars)}
           </button>` : ''}
-        <a class="btn btn-ghost btn-block" href="#/adicionar?d=${date}&m=${meal.id}">+ Adicionar</a>
+        <a class="btn btn-ghost btn-block" href="#/adicionar?d=${date}&m=${meal}">${t('today.add')}</a>
       </section>`;
   }).join('');
 
@@ -70,33 +78,33 @@ export function render(root, params) {
 
   root.innerHTML = `
     <div class="datebar">
-      <a class="btn btn-ghost icon-btn" href="#/hoje?d=${addDays(date, -1)}" aria-label="Dia anterior">‹</a>
+      <a class="btn btn-ghost icon-btn" href="#/hoje?d=${addDays(date, -1)}" aria-label="${t('today.prevDay')}">‹</a>
       <h1>${esc(title)}<span class="sub">${formatDate(date, { day: 'numeric', month: 'long' })}</span></h1>
       ${date < today
-        ? `<a class="btn btn-ghost icon-btn" href="#/hoje?d=${addDays(date, 1)}" aria-label="Próximo dia">›</a>`
+        ? `<a class="btn btn-ghost icon-btn" href="#/hoje?d=${addDays(date, 1)}" aria-label="${t('today.nextDay')}">›</a>`
         : '<span class="icon-btn"></span>'}
     </div>
 
     <section class="card">
       <div class="row between" style="margin-bottom:12px">
-        <h2 style="margin:0">Calorias</h2>
-        <span class="badge ${status.cls}">${status.label}</span>
+        <h2 style="margin:0">${t('today.calories')}</h2>
+        <span class="badge ${status.cls}">${t(status.key)}</span>
       </div>
       <div class="summary">
         ${ring(sum.kcal, targets.kcal, status.cls)}
         <div class="summary-lines">
           <p style="margin-bottom:4px">${remaining}</p>
-          <p class="muted small" style="margin:0">Meta ${n0(targets.kcal)} kcal<br>Dieta cumprida entre ${n0(range.min)} e ${n0(range.max)} kcal</p>
+          <p class="muted small" style="margin:0">${t('today.target', { n: n0(targets.kcal) })}<br>${t('today.range', { min: n0(range.min), max: n0(range.max) })}</p>
         </div>
       </div>
-      ${macro('Proteína', sum.protein, targets.protein, 'var(--protein)')}
-      ${macro('Carboidratos', sum.carbs, targets.carbs, 'var(--carbs)')}
-      ${macro('Gorduras', sum.fat, targets.fat, 'var(--fat)')}
+      ${macro(t('macro.protein'), sum.protein, targets.protein, 'var(--protein)')}
+      ${macro(t('macro.carbs'), sum.carbs, targets.carbs, 'var(--carbs)')}
+      ${macro(t('macro.fat'), sum.fat, targets.fat, 'var(--fat)')}
     </section>
 
     <section class="card">
       <div class="row between">
-        <h2 style="margin:0">Água</h2>
+        <h2 style="margin:0">${t('today.water')}</h2>
         <span class="muted small">${n1(water / 1000)} / ${n1(targets.waterMl / 1000)} L</span>
       </div>
       ${progressBar(water, targets.waterMl, 'var(--water)')}
@@ -110,11 +118,11 @@ export function render(root, params) {
     ${meals}
 
     <section class="card">
-      <h2>Dia neutro</h2>
-      <p class="muted small">Use em dias de descanso planejado, doença ou lesão. O dia não conta como cumprido nem como falha.</p>
-      <select id="neutral" aria-label="Motivo do dia neutro">
-        <option value="">Dia normal</option>
-        ${NEUTRAL_REASONS.map((r) => `<option value="${r.id}" ${day.neutral === r.id ? 'selected' : ''}>${r.label}</option>`).join('')}
+      <h2>${t('today.neutral')}</h2>
+      <p class="muted small">${t('today.neutralHelp')}</p>
+      <select id="neutral" aria-label="${t('today.neutral')}">
+        <option value="">${t('today.normalDay')}</option>
+        ${NEUTRAL_REASONS.map((r) => `<option value="${r}" ${day.neutral === r ? 'selected' : ''}>${t(`neutral.${r}`)}</option>`).join('')}
       </select>
     </section>
 
@@ -127,24 +135,19 @@ export function render(root, params) {
     editDialog.innerHTML = `
       <form method="dialog" id="edit-form">
         <h2>${esc(entry.name)}</h2>
-        <label for="edit-grams">Quantidade (g)</label>
+        <label for="edit-grams">${t('qty.label')}</label>
         <input id="edit-grams" inputmode="decimal" value="${n0(entry.grams)}">
         <div class="macros-preview" id="edit-preview"></div>
         <div class="grid-2">
-          <button type="button" id="edit-cancel">Cancelar</button>
-          <button type="submit" class="btn-primary">Salvar</button>
+          <button type="button" id="edit-cancel">${t('common.cancel')}</button>
+          <button type="submit" class="btn-primary">${t('common.save')}</button>
         </div>
       </form>`;
     const grams = editDialog.querySelector('#edit-grams');
     const preview = editDialog.querySelector('#edit-preview');
     const update = () => {
       const g = num(grams.value);
-      const n = nutrientsFor(per100, Number.isFinite(g) ? g : 0);
-      preview.innerHTML = `
-        <div><b>${n0(n.kcal)}</b><small>kcal</small></div>
-        <div><b>${n1(n.protein)}</b><small>proteína</small></div>
-        <div><b>${n1(n.carbs)}</b><small>carbo</small></div>
-        <div><b>${n1(n.fat)}</b><small>gordura</small></div>`;
+      preview.innerHTML = macrosPreview(nutrientsFor(per100, Number.isFinite(g) ? g : 0));
     };
     update();
     grams.addEventListener('input', update);
@@ -154,10 +157,10 @@ export function render(root, params) {
       const g = num(grams.value);
       if (!(g > 0 && g <= 5000)) {
         ev.preventDefault();
-        return toast('Informe uma quantidade entre 1 e 5000 g.');
+        return toast(t('qty.error'));
       }
       updateEntry(date, entry.id, g, per100);
-      toast('Quantidade atualizada');
+      toast(t('qty.updated'));
       refresh();
     });
     editDialog.showModal();
@@ -168,7 +171,7 @@ export function render(root, params) {
     const remove = ev.target.closest('[data-remove]');
     if (remove) {
       removeEntry(date, remove.dataset.remove);
-      toast('Item removido');
+      toast(t('today.removed'));
       refresh();
       return;
     }
@@ -180,8 +183,8 @@ export function render(root, params) {
     }
     const repeat = ev.target.closest('[data-repeat]');
     if (repeat) {
-      const n = copyMeal(addDays(date, -1), date, repeat.dataset.repeat);
-      toast(`${n} ${n === 1 ? 'item copiado' : 'itens copiados'}`);
+      copyMeal(addDays(date, -1), date, repeat.dataset.repeat);
+      toast(t('today.copied'));
       refresh();
       return;
     }
@@ -194,7 +197,7 @@ export function render(root, params) {
 
   root.querySelector('#neutral').addEventListener('change', (ev) => {
     setNeutral(date, ev.target.value);
-    toast(ev.target.value ? 'Dia marcado como neutro' : 'Dia normal');
+    toast(t(ev.target.value ? 'today.neutralMarked' : 'today.normalDay'));
     refresh();
   });
 }

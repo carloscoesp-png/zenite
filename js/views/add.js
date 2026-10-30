@@ -1,10 +1,11 @@
 // Adicionar alimento a uma refeição: busca, favoritos, recentes, porção e alimento próprio.
 import { getState, MEALS, addEntry, addCustomFood, toggleFavorite, nutrientsFor } from '../store.js';
-import { findFood, searchFoods, SOURCE_LABEL } from '../foods.js';
-import { esc, n0, n1, num, dateKey, toast } from '../ui.js';
+import { findFood, searchFoods } from '../foods.js';
+import { t } from '../i18n.js';
+import { esc, n0, n1, num, dateKey, macrosPreview, toast } from '../ui.js';
 
 const sourceOf = (f) => (f.custom ? 'usuario' : f.source || 'taco');
-const portionText = (f) => (f.portion ? `${f.portion} (${n0(f.portionG)} g)` : 'por 100 g');
+const portionText = (f) => (f.portion ? `${f.portion} (${n0(f.portionG)} g)` : t('add.per100'));
 
 // Atalhos de quantidade: porções próprias do prato, múltiplos da porção caseira,
 // ou gramas fixas quando não há porção.
@@ -17,22 +18,21 @@ const quickAmounts = (f) => {
 export function render(root, params) {
   const today = dateKey();
   const date = params.d && params.d <= today ? params.d : today;
-  const meal = MEALS.find((m) => m.id === params.m) || MEALS[0];
+  const meal = MEALS.includes(params.m) ? params.m : MEALS[0];
   const back = `#/hoje${date === today ? '' : `?d=${date}`}`;
 
   root.innerHTML = `
     <div class="datebar">
-      <a class="btn btn-ghost icon-btn" href="${back}" aria-label="Voltar">‹</a>
-      <h1>${meal.label}</h1>
+      <a class="btn btn-ghost icon-btn" href="${back}" aria-label="${t('common.back')}">‹</a>
+      <h1>${t(`meal.${meal}`)}</h1>
       <span class="icon-btn"></span>
     </div>
     <div class="search">
-      <input id="q" type="search" placeholder="Buscar alimento" autocomplete="off" aria-label="Buscar alimento">
+      <input id="q" type="search" placeholder="${t('add.search')}" autocomplete="off" aria-label="${t('add.search')}">
     </div>
     <div id="results"></div>
-    <button id="new-food" class="btn-ghost btn-block" style="margin-top:12px">+ Criar alimento</button>
-    <p class="hint">Valores por 100 g da Tabela Brasileira de Composição de Alimentos (TACO, 4ª edição, NEPA/Unicamp).
-      Itens que a TACO não traz aparecem como "valor médio de rótulo".</p>
+    <button id="new-food" class="btn-ghost btn-block" style="margin-top:12px">${t('add.newFood')}</button>
+    <p class="hint">${t('add.sourceNote')}</p>
 
     <dialog id="portion"></dialog>
     <dialog id="custom"></dialog>`;
@@ -47,8 +47,8 @@ export function render(root, params) {
       <h2>${title}</h2>
       <ul class="food-list">${foods.map((f) => `
         <li><button class="food-item" data-food="${esc(f.id)}">
-          <span>${esc(f.name)}<small>${esc(portionText(f))}${sourceOf(f) === 'taco' ? '' : ` · ${SOURCE_LABEL[sourceOf(f)]}`}</small></span>
-          <span class="muted small">${n0(f.kcal)} kcal/100 g</span>
+          <span>${esc(f.name)}<small>${esc(portionText(f))}${sourceOf(f) === 'taco' ? '' : ` · ${t(`source.${sourceOf(f)}`)}`}</small></span>
+          <span class="muted small">${t('add.kcalPer100', { n: n0(f.kcal) })}</span>
         </button></li>`).join('')}</ul>
     </section>` : '';
 
@@ -58,14 +58,12 @@ export function render(root, params) {
     if (!q) {
       const favs = s.favorites.map((id) => findFood(id, s.customFoods)).filter(Boolean);
       const recents = s.recents.filter((id) => !s.favorites.includes(id)).map((id) => findFood(id, s.customFoods)).filter(Boolean);
-      results.innerHTML = list('Favoritos', favs) + list('Recentes', recents) +
-        (favs.length || recents.length ? '' : '<p class="muted">Digite o nome de um alimento para buscar.</p>');
+      results.innerHTML = list(t('add.favorites'), favs) + list(t('add.recents'), recents) +
+        (favs.length || recents.length ? '' : `<p class="muted">${t('add.typeToSearch')}</p>`);
       return;
     }
     const found = searchFoods(q, s.customFoods);
-    results.innerHTML = found.length
-      ? list('Resultados', found)
-      : '<p class="muted">Nenhum alimento encontrado. Você pode criar um com os dados do rótulo.</p>';
+    results.innerHTML = found.length ? list(t('add.results'), found) : `<p class="muted">${t('add.noResults')}</p>`;
   }
 
   function openPortion(food) {
@@ -74,25 +72,25 @@ export function render(root, params) {
       <form method="dialog" id="portion-form">
         <div class="row between">
           <h2 style="margin:0">${esc(food.name)}</h2>
-          <button type="button" class="btn-ghost icon-btn" id="fav" aria-pressed="${isFav()}" aria-label="Favorito">${isFav() ? '★' : '☆'}</button>
+          <button type="button" class="btn-ghost icon-btn" id="fav" aria-pressed="${isFav()}" aria-label="${t('add.favorite')}">${isFav() ? '★' : '☆'}</button>
         </div>
-        <p class="muted small">${n0(food.kcal)} kcal por 100 g · ${SOURCE_LABEL[sourceOf(food)]}${food.portion ? ` · ${esc(food.portion)} = ${n0(food.portionG)} g` : ''}</p>
+        <p class="muted small">${t('add.kcalPer100Long', { n: n0(food.kcal) })} · ${t(`source.${sourceOf(food)}`)}${food.portion ? ` · ${esc(food.portion)} = ${n0(food.portionG)} g` : ''}</p>
         <div class="chips" style="margin-bottom:12px">
           ${quickAmounts(food).map((q) => `<button type="button" class="chip" data-grams="${q.grams}">${esc(q.label)}</button>`).join('')}
         </div>
         ${food.ingredients ? `
           <details class="small" style="margin-bottom:12px">
-            <summary class="muted">Ingredientes de 1 ${esc(food.portion)} (receita padrão)</summary>
+            <summary class="muted">${esc(t('add.ingredients', { portion: food.portion }))}</summary>
             <ul class="muted" style="margin:6px 0 0; padding-left:18px">
               ${food.ingredients.map((i) => `<li>${esc(i.name)}: ${n0(i.grams)} g</li>`).join('')}
             </ul>
           </details>` : ''}
-        <label for="grams">Quantidade (g)</label>
+        <label for="grams">${t('qty.label')}</label>
         <input id="grams" inputmode="decimal" value="${food.portionG}">
         <div class="macros-preview" id="preview"></div>
         <div class="grid-2">
-          <button type="button" id="cancel">Cancelar</button>
-          <button type="submit" class="btn-primary">Adicionar</button>
+          <button type="button" id="cancel">${t('common.cancel')}</button>
+          <button type="submit" class="btn-primary">${t('common.add')}</button>
         </div>
       </form>`;
 
@@ -100,12 +98,7 @@ export function render(root, params) {
     const preview = portion.querySelector('#preview');
     const update = () => {
       const g = num(grams.value);
-      const n = nutrientsFor(food, Number.isFinite(g) ? g : 0);
-      preview.innerHTML = `
-        <div><b>${n0(n.kcal)}</b><small>kcal</small></div>
-        <div><b>${n1(n.protein)}</b><small>proteína</small></div>
-        <div><b>${n1(n.carbs)}</b><small>carbo</small></div>
-        <div><b>${n1(n.fat)}</b><small>gordura</small></div>`;
+      preview.innerHTML = macrosPreview(nutrientsFor(food, Number.isFinite(g) ? g : 0));
     };
     update();
     grams.addEventListener('input', update);
@@ -118,17 +111,17 @@ export function render(root, params) {
       const on = toggleFavorite(food.id);
       ev.currentTarget.textContent = on ? '★' : '☆';
       ev.currentTarget.setAttribute('aria-pressed', on);
-      toast(on ? 'Adicionado aos favoritos' : 'Removido dos favoritos');
+      toast(t(on ? 'add.favAdded' : 'add.favRemoved'));
     });
     portion.querySelector('#cancel').addEventListener('click', () => portion.close());
     portion.querySelector('#portion-form').addEventListener('submit', (ev) => {
       const g = num(grams.value);
       if (!(g > 0 && g <= 5000)) {
         ev.preventDefault();
-        return toast('Informe uma quantidade entre 1 e 5000 g.');
+        return toast(t('qty.error'));
       }
-      addEntry(date, meal.id, food, g);
-      toast(`${food.name} adicionado`);
+      addEntry(date, meal, food, g);
+      toast(t('add.added', { name: food.name }));
       location.hash = back;
     });
     // Sem foco automático no campo: no celular o teclado cobriria a porção e o resumo.
@@ -139,22 +132,24 @@ export function render(root, params) {
   }
 
   function openCustom() {
+    const field = (id, name, label, attrs = '') =>
+      `<div class="field"><label for="${id}">${label}</label><input id="${id}" name="${name}" ${attrs}></div>`;
     custom.innerHTML = `
       <form id="custom-form" novalidate>
-        <h2>Criar alimento</h2>
-        <p class="muted small">Use os dados do rótulo, sempre por 100 g ou 100 ml.</p>
-        <div class="field"><label for="c-name">Nome</label><input id="c-name" name="name" required maxlength="60"></div>
+        <h2>${t('custom.title')}</h2>
+        <p class="muted small">${t('custom.help')}</p>
+        ${field('c-name', 'name', t('custom.name'), 'required maxlength="60"')}
         <div class="grid-2">
-          <div class="field"><label for="c-kcal">Calorias (kcal)</label><input id="c-kcal" name="kcal" inputmode="decimal" required></div>
-          <div class="field"><label for="c-p">Proteína (g)</label><input id="c-p" name="protein" inputmode="decimal" required></div>
-          <div class="field"><label for="c-c">Carboidrato (g)</label><input id="c-c" name="carbs" inputmode="decimal" required></div>
-          <div class="field"><label for="c-f">Gordura (g)</label><input id="c-f" name="fat" inputmode="decimal" required></div>
-          <div class="field"><label for="c-portion">Porção</label><input id="c-portion" name="portion" placeholder="unidade" maxlength="30"></div>
-          <div class="field"><label for="c-pg">Gramas da porção</label><input id="c-pg" name="portionG" inputmode="decimal" placeholder="100"></div>
+          ${field('c-kcal', 'kcal', t('custom.kcal'), 'inputmode="decimal" required')}
+          ${field('c-p', 'protein', t('custom.protein'), 'inputmode="decimal" required')}
+          ${field('c-c', 'carbs', t('custom.carbs'), 'inputmode="decimal" required')}
+          ${field('c-f', 'fat', t('custom.fat'), 'inputmode="decimal" required')}
+          ${field('c-portion', 'portion', t('custom.portion'), `placeholder="${t('custom.portionPh')}" maxlength="30"`)}
+          ${field('c-pg', 'portionG', t('custom.portionG'), 'inputmode="decimal" placeholder="100"')}
         </div>
         <div class="grid-2">
-          <button type="button" id="c-cancel">Cancelar</button>
-          <button type="submit" class="btn-primary">Salvar</button>
+          <button type="button" id="c-cancel">${t('common.cancel')}</button>
+          <button type="submit" class="btn-primary">${t('common.save')}</button>
         </div>
       </form>`;
     custom.querySelector('#c-cancel').addEventListener('click', () => custom.close());
@@ -168,16 +163,16 @@ export function render(root, params) {
         protein: num(fd.get('protein')),
         carbs: num(fd.get('carbs')),
         fat: num(fd.get('fat')),
-        portion: String(fd.get('portion') || '').trim() || 'porção',
+        portion: String(fd.get('portion') || '').trim() || t('custom.defaultPortion'),
         portionG: num(fd.get('portionG')) || 100,
       };
-      if (!food.name) return toast('Informe o nome.');
+      if (!food.name) return toast(t('custom.errName'));
       if (![food.kcal, food.protein, food.carbs, food.fat].every((v) => v >= 0 && v <= 900)) {
-        return toast('Preencha calorias e macronutrientes com números válidos.');
+        return toast(t('custom.errValues'));
       }
       const saved = addCustomFood(food);
       custom.close();
-      toast('Alimento criado');
+      toast(t('custom.saved'));
       openPortion(saved);
     });
     custom.showModal();

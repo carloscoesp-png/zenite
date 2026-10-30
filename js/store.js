@@ -5,13 +5,8 @@
 const KEY = 'lifequest:v1';
 const SCHEMA_VERSION = 1;
 
-export const MEALS = [
-  { id: 'cafe', label: 'Café da manhã' },
-  { id: 'almoco', label: 'Almoço' },
-  { id: 'lanche', label: 'Lanche' },
-  { id: 'jantar', label: 'Jantar' },
-  { id: 'ceia', label: 'Ceia' },
-];
+// Nomes das refeições ficam em i18n.js ("meal.<id>").
+export const MEALS = ['cafe', 'almoco', 'lanche', 'jantar', 'ceia'];
 
 function emptyState() {
   return {
@@ -23,6 +18,7 @@ function emptyState() {
     customFoods: [],
     favorites: [],
     recents: [],
+    settings: {},
   };
 }
 
@@ -63,7 +59,14 @@ export function replaceState(next) {
 }
 
 export function resetAll() {
-  state = emptyState();
+  // O idioma escolhido continua depois de apagar os dados.
+  const { settings } = state;
+  state = { ...emptyState(), settings };
+  save();
+}
+
+export function setLang(lang) {
+  state.settings = { ...state.settings, lang };
   save();
 }
 

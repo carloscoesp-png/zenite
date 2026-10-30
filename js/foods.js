@@ -6,13 +6,6 @@ import { portionFor } from './portions.js';
 import { DISHES } from './dishes.js';
 import { normalize } from './ui.js';
 
-export const SOURCE_LABEL = {
-  taco: 'TACO',
-  rotulo: 'Valor médio de rótulo',
-  prato: 'Prato montado (soma dos ingredientes)',
-  usuario: 'Meu alimento',
-};
-
 // Itens fora da TACO. Na TACO o leite fluido está sem análise ("*").
 // Formato: [id, nome, categoria, kcal, proteína, carboidrato, gordura, porção, gramas] por 100 g/ml.
 const COMPLEMENT = [
