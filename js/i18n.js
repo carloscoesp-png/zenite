@@ -344,11 +344,32 @@ export function t(key, vars = {}) {
   return text.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : ''));
 }
 
-// Seletor de idioma usado no cadastro e no perfil.
-export function langSelect(id = 'lang') {
+// Bandeiras desenhadas em SVG (emoji de bandeira não aparece no Windows).
+// Quadradas aqui; o botão recorta em círculo.
+const FLAGS = {
+  'pt-BR': `
+    <rect width="32" height="32" fill="#009c3b"/>
+    <polygon points="16,5 29,16 16,27 3,16" fill="#ffdf00"/>
+    <circle cx="16" cy="16" r="6" fill="#002776"/>
+    <path d="M10.4 14.6 Q16 13 21.6 16.4" stroke="#fff" stroke-width="1.1" fill="none"/>`,
+  en: `
+    <rect width="32" height="32" fill="#fff"/>
+    ${[0, 2, 4, 6, 8, 10, 12].map((i) => `<rect y="${(i * 32) / 13}" width="32" height="${32 / 13}" fill="#b22234"/>`).join('')}
+    <rect width="15" height="${(7 * 32) / 13}" fill="#3c3b6e"/>
+    ${[[3, 3.5], [7.5, 3.5], [12, 3.5], [5.2, 7.5], [9.8, 7.5], [3, 11.5], [7.5, 11.5], [12, 11.5], [5.2, 15]]
+      .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="0.9" fill="#fff"/>`).join('')}`,
+  es: `
+    <rect width="32" height="32" fill="#c60b1e"/>
+    <rect y="8" width="32" height="16" fill="#ffc400"/>`,
+};
+
+// Seletor de idioma: bandeirinhas redondas, um toque troca o idioma.
+export function langFlags() {
   return `
-    <label for="${id}">${t('lang.label')}</label>
-    <select id="${id}" data-lang-select>
-      ${LANGS.map((l) => `<option value="${l.id}" ${l.id === lang() ? 'selected' : ''}>${l.label}</option>`).join('')}
-    </select>`;
+    <div class="flags" role="group" aria-label="${t('lang.label')}">
+      ${LANGS.map((l) => `
+        <button type="button" class="flag" data-lang="${l.id}" aria-pressed="${l.id === lang()}" aria-label="${l.label}" title="${l.label}">
+          <svg viewBox="0 0 32 32" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${FLAGS[l.id]}</svg>
+        </button>`).join('')}
+    </div>`;
 }

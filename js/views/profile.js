@@ -1,7 +1,7 @@
 // Perfil: idioma, metas diárias, dados pessoais e cópia de segurança.
 import { getState, setProfile, setTargets, replaceState, resetAll, setLang } from '../store.js';
 import { suggestTargets, tdee } from '../calc.js';
-import { t, langSelect } from '../i18n.js';
+import { t, langFlags } from '../i18n.js';
 import { esc, n0, num, dateKey, refresh, toast } from '../ui.js';
 import { profileFields, readProfile } from './profile-form.js';
 
@@ -19,11 +19,10 @@ export function render(root) {
     </div>`;
 
   root.innerHTML = `
-    <h1>${esc(t('prof.hello', { name: s.profile.name }))}</h1>
-
-    <section class="card">
-      ${langSelect('prof-lang')}
-    </section>
+    <div class="page-head">
+      <h1>${esc(t('prof.hello', { name: s.profile.name }))}</h1>
+      ${langFlags()}
+    </div>
 
     <section class="card">
       <h2>${t('prof.targets')}</h2>
@@ -67,8 +66,10 @@ export function render(root) {
 
     <p class="muted small" style="text-align:center">${t('prof.version', { v: VERSION })}</p>`;
 
-  root.querySelector('[data-lang-select]').addEventListener('change', (ev) => {
-    setLang(ev.target.value);
+  root.querySelector('.flags').addEventListener('click', (ev) => {
+    const flag = ev.target.closest('[data-lang]');
+    if (!flag) return;
+    setLang(flag.dataset.lang);
     refresh();
   });
 

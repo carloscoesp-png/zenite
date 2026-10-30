@@ -1,7 +1,7 @@
 // Cadastro inicial: idioma, perfil, cálculo das metas e primeiro peso.
 import { getState, setProfile, setTargets, addWeight, setLang } from '../store.js';
 import { suggestTargets } from '../calc.js';
-import { t, langSelect } from '../i18n.js';
+import { t, langFlags } from '../i18n.js';
 import { dateKey, refresh, toast } from '../ui.js';
 import { profileFields, readProfile } from './profile-form.js';
 
@@ -12,9 +12,9 @@ export function render(root) {
   }
 
   root.innerHTML = `
-    <div class="row between" style="align-items:flex-start">
+    <div class="page-head">
       <div class="brand"><img src="icons/icon-192.png" alt=""><b>Zênite</b></div>
-      <div style="width:140px">${langSelect('onb-lang')}</div>
+      ${langFlags()}
     </div>
     <p class="muted">${t('onb.intro')}</p>
     <form id="onboarding" class="card" novalidate>
@@ -26,8 +26,10 @@ export function render(root) {
       <button class="btn-primary btn-block" type="submit">${t('onb.submit')}</button>
     </form>`;
 
-  root.querySelector('[data-lang-select]').addEventListener('change', (ev) => {
-    setLang(ev.target.value);
+  root.querySelector('.flags').addEventListener('click', (ev) => {
+    const flag = ev.target.closest('[data-lang]');
+    if (!flag) return;
+    setLang(flag.dataset.lang);
     refresh();
   });
 
