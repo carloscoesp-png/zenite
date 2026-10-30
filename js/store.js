@@ -167,6 +167,12 @@ export function toggleMission(date, id) {
   return day.missions[id];
 }
 
+// Foto de perfil (data URL pequena) ou null para remover.
+export function setPhoto(photo) {
+  state.profile = { ...state.profile, photo: photo || null };
+  return save();
+}
+
 export function setFocus(focus) {
   state.profile = { ...state.profile, focus };
   save();

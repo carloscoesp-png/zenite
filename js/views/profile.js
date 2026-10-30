@@ -1,7 +1,8 @@
 // Perfil: idioma, metas diárias, dados pessoais e cópia de segurança.
-import { getState, setProfile, setTargets, replaceState, resetAll, setLang, setFocus } from '../store.js';
+import { getState, getDay, setProfile, setTargets, replaceState, resetAll, setLang, setFocus, setPhoto } from '../store.js';
 import { suggestTargets, tdee } from '../calc.js';
-import { FOCUS } from '../journey.js';
+import { FOCUS, computeJourney } from '../journey.js';
+import { avatar, photoFromFile } from '../avatar.js';
 import { t, langFlags } from '../i18n.js';
 import { esc, n0, num, dateKey, refresh, toast } from '../ui.js';
 import { profileFields, readProfile, focusFields, readFocus } from './profile-form.js';
@@ -12,6 +13,7 @@ export function render(root) {
   const s = getState();
   const targets = s.targets;
   const suggested = suggestTargets(s.profile);
+  const journey = computeJourney(s, getDay, dateKey());
 
   const targetField = (name, label, value, unit) => `
     <div class="field">
@@ -20,9 +22,20 @@ export function render(root) {
     </div>`;
 
   root.innerHTML = `
-    <div class="page-head">
-      <h1>${esc(t('prof.hello', { name: s.profile.name }))}</h1>
-      ${langFlags()}
+    <div style="display:flex; justify-content:flex-end; margin-top:4px">${langFlags()}</div>
+    <div style="margin:8px 0 20px">
+      <div class="profile-id">
+        <label class="avatar-btn" title="${t(s.profile.photo ? 'avatar.change' : 'avatar.add')}">
+          ${avatar({ photo: s.profile.photo, name: s.profile.name, division: journey.division, level: journey.level })}
+          <span class="cam" aria-hidden="true">✎</span>
+          <input id="photo" type="file" accept="image/*" hidden aria-label="${t(s.profile.photo ? 'avatar.change' : 'avatar.add')}">
+        </label>
+        <div style="min-width:0">
+          <h1>${esc(t('prof.hello', { name: s.profile.name }))}</h1>
+          <span class="muted small">${t('journey.division', { name: t(`division.${journey.division}`) })} · ${t('journey.level', { n: journey.level })}</span>
+          ${s.profile.photo ? `<br><button type="button" id="photo-remove" class="link-btn">${t('avatar.remove')}</button>` : ''}
+        </div>
+      </div>
     </div>
 
     <section class="card">
@@ -78,6 +91,23 @@ export function render(root) {
     const flag = ev.target.closest('[data-lang]');
     if (!flag) return;
     setLang(flag.dataset.lang);
+    refresh();
+  });
+
+  root.querySelector('#photo').addEventListener('change', async (ev) => {
+    const file = ev.target.files[0];
+    if (!file) return;
+    try {
+      if (!setPhoto(await photoFromFile(file))) throw new Error('sem espaço');
+      toast(t('avatar.saved'));
+    } catch {
+      toast(t('avatar.error'));
+    }
+    refresh();
+  });
+
+  root.querySelector('#photo-remove')?.addEventListener('click', () => {
+    setPhoto(null);
     refresh();
   });
 

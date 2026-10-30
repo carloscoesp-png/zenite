@@ -271,6 +271,25 @@ dialog::backdrop { background: rgb(0 0 0 / .55); }
 .calendar .day.gold { background: var(--gold-gradient); color: var(--accent-ink); font-weight: 700; }
 .legend .gold::before { background: var(--accent); }
 
+/* Foto de perfil com anel da Divisão */
+.avatar { position: relative; display: inline-block; flex: none; border-radius: 50%; }
+.avatar svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.avatar img, .avatar .avatar-initial {
+  position: absolute; inset: 9%; width: 82%; height: 82%; border-radius: 50%; object-fit: cover;
+}
+.avatar .avatar-initial {
+  display: grid; place-items: center; background: var(--surface-2); font-size: 1.6rem; font-weight: 800;
+}
+.avatar-btn { padding: 0; border: 0; background: none; border-radius: 50%; cursor: pointer; position: relative; }
+.avatar-btn .cam {
+  position: absolute; right: -2px; bottom: -2px; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--gold-gradient); color: var(--accent-ink); display: grid; place-items: center;
+  font-size: 13px; border: 2px solid var(--bg);
+}
+.profile-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.profile-id h1 { margin: 0; }
+.link-btn { padding: 0; border: 0; background: none; color: var(--text-2); font-size: .8rem; text-decoration: underline; }
+
 /* Seletor de idioma: bandeiras redondas */
 .flags { display: flex; gap: 8px; flex: none; }
 .flag {

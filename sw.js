@@ -1,6 +1,6 @@
 // Service worker: guarda os arquivos do app para funcionar sem internet.
 // Ao adicionar ou remover arquivos da lista, aumente a versão.
-const VERSION = 'zenite-v0.5.0';
+const VERSION = 'zenite-v0.5.1';
 const FILES = [
   './',
   'index.html',
@@ -15,6 +15,7 @@ const FILES = [
   'js/ui.js',
   'js/i18n.js',
   'js/journey.js',
+  'js/avatar.js',
   'js/views/journey.js',
   'js/foods.js',
   'js/taco.js',

@@ -147,6 +147,8 @@ const DICT = {
     'focus.title': 'Áreas para desenvolver',
     'focus.help': 'Cada área escolhida vira uma missão diária. Nutrição e hidratação (Constituição) estão sempre ativas.',
     'focus.save': 'Salvar áreas', 'focus.saved': 'Áreas salvas',
+    'avatar.add': 'Adicionar foto de perfil', 'avatar.change': 'Trocar foto de perfil', 'avatar.remove': 'Remover foto',
+    'avatar.saved': 'Foto atualizada', 'avatar.error': 'Não foi possível usar essa imagem.',
   },
 
   en: {
@@ -287,6 +289,8 @@ const DICT = {
     'focus.title': 'Areas to develop',
     'focus.help': 'Each chosen area becomes a daily mission. Nutrition and hydration (Constitution) are always on.',
     'focus.save': 'Save areas', 'focus.saved': 'Areas saved',
+    'avatar.add': 'Add profile photo', 'avatar.change': 'Change profile photo', 'avatar.remove': 'Remove photo',
+    'avatar.saved': 'Photo updated', 'avatar.error': "Couldn't use that image.",
   },
 
   es: {
@@ -427,6 +431,8 @@ const DICT = {
     'focus.title': 'Áreas para desarrollar',
     'focus.help': 'Cada área elegida se convierte en una misión diaria. Nutrición e hidratación (Constitución) siempre están activas.',
     'focus.save': 'Guardar áreas', 'focus.saved': 'Áreas guardadas',
+    'avatar.add': 'Agregar foto de perfil', 'avatar.change': 'Cambiar foto de perfil', 'avatar.remove': 'Quitar foto',
+    'avatar.saved': 'Foto actualizada', 'avatar.error': 'No se pudo usar esa imagen.',
   },
 };
 
