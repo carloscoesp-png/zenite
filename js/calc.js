@@ -76,6 +76,34 @@ export function totals(day) {
   );
 }
 
+// ---------- Modo "Tô sem tempo" ----------
+
+// Parte da meta diária de cada refeição (soma 100%).
+export const MEAL_SHARE = { cafe: 0.2, almoco: 0.35, lanche: 0.15, jantar: 0.25, ceia: 0.05 };
+// "Exagerei": dobro das calorias previstas, puxado para carboidrato, depois gordura, depois proteína.
+const OVERDO = { factor: 2, carbs: 0.5, fat: 0.38, protein: 0.12 };
+
+// Nutrientes de uma refeição rápida: 'sim' = o planejado; 'exagerei' = o dobro, mal distribuído.
+export function quickMealNutrients(targets, meal, choice) {
+  const share = MEAL_SHARE[meal] ?? 0;
+  const r1 = (v) => Math.round(v * 10) / 10;
+  if (choice === 'sim') {
+    return {
+      kcal: Math.round(targets.kcal * share),
+      protein: r1(targets.protein * share),
+      carbs: r1(targets.carbs * share),
+      fat: r1(targets.fat * share),
+    };
+  }
+  const kcal = Math.round(targets.kcal * share * OVERDO.factor);
+  return {
+    kcal,
+    protein: r1((kcal * OVERDO.protein) / 4),
+    carbs: r1((kcal * OVERDO.carbs) / 4),
+    fat: r1((kcal * OVERDO.fat) / 9),
+  };
+}
+
 export function dietRange(targetKcal) {
   return {
     min: Math.round(targetKcal * (1 - DIET_TOLERANCE)),

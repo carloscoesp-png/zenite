@@ -262,6 +262,21 @@ dialog::backdrop { background: rgb(0 0 0 / .55); }
   border: 1px dashed var(--accent); color: var(--accent-2); font-size: .9rem; font-weight: 600;
 }
 
+/* Modo de registro: Detalhada | Tô sem tempo */
+.seg {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: 4px 0 12px;
+  border-radius: 12px; background: var(--surface); border: 1px solid var(--border);
+}
+.seg button { border: 0; background: none; color: var(--text-2); border-radius: 9px; padding: 9px 8px; font-weight: 600; }
+.seg button[aria-pressed="true"] { background: var(--gold-gradient); color: var(--accent-ink); }
+
+/* Botões Sim / Não / Exagerei */
+.quick-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.quick-choices button { padding: 12px 6px; font-weight: 600; }
+.quick-choices .q-yes[aria-pressed="true"] { border-color: var(--accent); background: rgb(212 175 55 / .15); color: var(--accent-2); }
+.quick-choices .q-no[aria-pressed="true"] { border-color: var(--text-2); background: var(--surface-2); color: var(--text); }
+.quick-choices .q-over[aria-pressed="true"] { border-color: var(--bad); background: rgb(229 103 95 / .15); color: var(--bad); }
+
 /* Jornada */
 .hero { display: flex; gap: 16px; align-items: center; }
 .emblem { width: 96px; height: 108px; flex: none; }

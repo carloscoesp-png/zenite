@@ -146,10 +146,32 @@ export function copyMeal(fromDate, toDate, meal) {
   return source.length;
 }
 
+// Modo "Tô sem tempo": guarda a escolha da refeição ('sim' | 'nao' | 'exagerei') e troca
+// o registro rápido dela (nunca duplica). nutrients = null quando não comeu.
+export function setQuickMeal(date, meal, choice, name, nutrients) {
+  const day = touchDay(date);
+  day.entries = day.entries.filter((e) => !(e.quick && e.meal === meal));
+  day.quick = { ...day.quick, [meal]: choice };
+  // grams 100 = "1 porção rápida" (não é peso real; o item não é editável, só removível)
+  if (nutrients) day.entries.push({ id: uid(), meal, quick: choice, foodId: null, name, grams: 100, ...nutrients });
+  save();
+}
+
+export function setMealMode(mode) {
+  state.settings = { ...state.settings, mealMode: mode };
+  save();
+}
+
 export function removeEntry(date, entryId) {
   const day = state.days[date];
   if (!day) return;
+  const removed = day.entries.find((e) => e.id === entryId);
   day.entries = day.entries.filter((e) => e.id !== entryId);
+  // Apagar um registro rápido também desfaz a escolha da refeição no modo "Tô sem tempo".
+  if (removed?.quick && day.quick) {
+    const { [removed.meal]: _, ...rest } = day.quick;
+    day.quick = rest;
+  }
   save();
 }
 

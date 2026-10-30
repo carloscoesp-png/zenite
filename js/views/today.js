@@ -1,8 +1,9 @@
 // Tela principal: resumo do dia, água, refeições e dia neutro.
 import {
   getState, getDay, MEALS, removeEntry, updateEntry, copyMeal, addWater, setNeutral, nutrientsFor, toggleMission,
+  setQuickMeal, setMealMode,
 } from '../store.js';
-import { totals, dayStatus, dietRange, NEUTRAL_REASONS } from '../calc.js';
+import { totals, dayStatus, dietRange, NEUTRAL_REASONS, quickMealNutrients } from '../calc.js';
 import { findFood } from '../foods.js';
 import { evaluateDay, FOCUS, RULES } from '../journey.js';
 import { t } from '../i18n.js';
@@ -56,9 +57,15 @@ export function render(root, params) {
 
   const previous = getDay(addDays(date, -1));
 
-  const meals = MEALS.map((meal) => {
-    const items = day.entries.filter((e) => e.meal === meal);
-    const kcal = items.reduce((s, e) => s + e.kcal, 0);
+  const quickMode = getState().settings?.mealMode === 'quick';
+
+  // Escolha rápida da refeição: vem do registro rápido (inclusive copiado de ontem) ou de "não comi".
+  const quickChoice = (meal) => day.entries.find((e) => e.quick && e.meal === meal)?.quick
+    || (day.quick?.[meal] === 'nao' ? 'nao' : null);
+
+  const entryLine = (e) => `${e.quick ? t('quick.portion') : `${n0(e.grams)} g`} · ${t('today.macroLine', { p: n1(e.protein), c: n1(e.carbs), f: n1(e.fat) })}`;
+
+  const detailedCard = (meal, items, kcal) => {
     // Repetir só aparece com a refeição vazia, para não duplicar sem querer.
     const prevItems = items.length ? [] : previous.entries.filter((e) => e.meal === meal);
     const prevKcal = prevItems.reduce((s, e) => s + e.kcal, 0);
@@ -75,9 +82,12 @@ export function render(root, params) {
         </div>
         ${items.length ? `<div class="entries">${items.map((e) => `
           <div class="entry">
-            <button class="name food-item" style="padding:0" data-edit="${e.id}" aria-label="${esc(t('today.editAria', { name: e.name }))}">
-              <span>${esc(e.name)}<small>${n0(e.grams)} g · ${t('today.macroLine', { p: n1(e.protein), c: n1(e.carbs), f: n1(e.fat) })}</small></span>
-            </button>
+            ${e.quick
+              // registro rápido: só removível (não tem peso real para editar)
+              ? `<div class="name"><span>${esc(e.name)}<small>${entryLine(e)}</small></span></div>`
+              : `<button class="name food-item" style="padding:0" data-edit="${e.id}" aria-label="${esc(t('today.editAria', { name: e.name }))}">
+                  <span>${esc(e.name)}<small>${entryLine(e)}</small></span>
+                </button>`}
             <span class="small">${n0(e.kcal)} kcal</span>
             <button class="btn-ghost icon-btn" data-remove="${e.id}" aria-label="${esc(t('today.removeAria', { name: e.name }))}">✕</button>
           </div>`).join('')}</div>` : ''}
@@ -87,7 +97,40 @@ export function render(root, params) {
           </button>` : ''}
         <a class="btn btn-ghost btn-block" href="#/adicionar?d=${date}&m=${meal}">${t('today.add')}</a>
       </section>`;
+  };
+
+  const quickCard = (meal, items, kcal) => {
+    const choice = quickChoice(meal);
+    const detailedKcal = items.filter((e) => !e.quick).reduce((s, e) => s + e.kcal, 0);
+    const btn = (value, cls, key) => `
+      <button type="button" class="${cls}" data-quick="${value}" data-meal="${meal}" aria-pressed="${choice === value}">${t(key)}</button>`;
+    return `
+      <section class="card">
+        <div class="meal-head">
+          <h3>${t(`meal.${meal}`)}</h3>
+          <span class="muted small">${items.length ? `${n0(kcal)} kcal` : ''}</span>
+        </div>
+        <div class="quick-choices">
+          ${btn('sim', 'q-yes', 'quick.yes')}
+          ${btn('nao', 'q-no', 'quick.no')}
+          ${btn('exagerei', 'q-over', 'quick.over')}
+        </div>
+        ${detailedKcal ? `<p class="hint">${t('quick.detailedNote', { n: n0(detailedKcal) })}</p>` : ''}
+      </section>`;
+  };
+
+  const meals = MEALS.map((meal) => {
+    const items = day.entries.filter((e) => e.meal === meal);
+    const kcal = items.reduce((s, e) => s + e.kcal, 0);
+    return quickMode ? quickCard(meal, items, kcal) : detailedCard(meal, items, kcal);
   }).join('');
+
+  const modeSwitch = `
+    <div class="seg" role="group" aria-label="${t('quick.modeAria')}">
+      <button type="button" data-mode="detailed" aria-pressed="${!quickMode}">${t('quick.detailed')}</button>
+      <button type="button" data-mode="quick" aria-pressed="${quickMode}">${t('quick.quick')}</button>
+    </div>
+    ${quickMode ? `<p class="hint" style="margin:-4px 0 12px">${t('quick.help')}</p>` : ''}`;
 
   const water = day.waterMl || 0;
 
@@ -193,6 +236,7 @@ export function render(root, params) {
       </div>
     </section>
 
+    ${modeSwitch}
     ${meals}
 
     <section class="card">
@@ -265,6 +309,20 @@ export function render(root, params) {
     if (edit) {
       const entry = day.entries.find((e) => e.id === edit.dataset.edit);
       if (entry) openEdit(entry);
+      return;
+    }
+    const mode = ev.target.closest('[data-mode]');
+    if (mode) {
+      setMealMode(mode.dataset.mode);
+      refresh();
+      return;
+    }
+    const quick = ev.target.closest('[data-quick]');
+    if (quick) {
+      const { meal, quick: choice } = quick.dataset;
+      const nutrients = choice === 'nao' ? null : quickMealNutrients(targets, meal, choice);
+      setQuickMeal(date, meal, choice, t(choice === 'sim' ? 'quick.entryYes' : 'quick.entryOver'), nutrients);
+      refresh();
       return;
     }
     const mission = ev.target.closest('[data-mission]');
