@@ -108,15 +108,18 @@ export function render(root, params) {
   };
   const justValidated = prev && !prev.validated && quest.validated;
 
-  // Água: alerta quando ela é a missão automática que falta (refeições e proteína feitas).
-  // Não depende da dieta; só diz "valida o dia" se a água realmente completar a validação.
+  // Água: alerta quando falta pouco para a meta e vale a pena lembrar — as missões já bastam,
+  // ou a água é a única automática pendente, ou faltam até 500 ml. Não depende da dieta.
+  const missing = Math.max(0, quest.need - quest.done);
   const waterLeft = Math.max(0, targets.waterMl - water);
   const otherAutoDone = quest.missions.filter((m) => m.auto && m.id !== 'c-water').every((m) => m.done);
-  const waterNudge = date === today && !quest.neutral && waterLeft > 0 && otherAutoDone;
+  const waterNudge = date === today && !quest.neutral && waterLeft > 0
+    && (otherAutoDone || missing === 0 || waterLeft <= 500);
+  // Só diz "valida o dia" se a água realmente completar a validação.
   const waterValidates = waterNudge && quest.diet && !quest.validated && quest.done + 1 >= quest.need;
+  const waterMsgKey = waterValidates ? 'water.onlyToValidate' : otherAutoDone ? 'water.onlyToGoal' : 'water.left';
   const suggestMl = waterLeft <= 250 ? 250 : 500;
   const waterGoalNow = prev && prev.water < targets.waterMl && water >= targets.waterMl;
-  const missing = Math.max(0, quest.need - quest.done);
   const missionsCard = quest.neutral
     ? `<section class="card"><h2>${t('missions.title')}</h2><p class="muted small" style="margin:0">${t('missions.neutral')}</p></section>`
     : `
@@ -182,7 +185,7 @@ export function render(root, params) {
         <span class="fill" style="width:${Math.min(100, (from('water', water) / targets.waterMl) * 100)}%"
           data-to-width="${Math.min(100, (water / targets.waterMl) * 100)}%"></span>
       </div>
-      ${waterNudge ? `<p class="water-msg">${DROP_ICON}<span>${t(waterValidates ? 'water.onlyToValidate' : 'water.onlyToGoal', { n: n0(waterLeft) })}</span></p>` : ''}
+      ${waterNudge ? `<p class="water-msg">${DROP_ICON}<span>${t(waterMsgKey, { n: n0(waterLeft) })}</span></p>` : ''}
       <div class="water-actions">
         <button data-water="-250" ${water <= 0 ? 'disabled' : ''}>− 250 ml</button>
         <button data-water="250" class="${waterNudge && suggestMl === 250 ? 'suggest' : ''}">+ 250 ml</button>
