@@ -3,7 +3,9 @@ import {
   getState, getDay, MEALS, removeEntry, updateEntry, copyMeal, addWater, setNeutral, nutrientsFor, toggleMission,
   setQuickMeal, setMealMode,
 } from '../store.js';
-import { totals, dayStatus, dietRange, NEUTRAL_REASONS, quickMealNutrients } from '../calc.js';
+import {
+  totals, dayStatus, dietRange, NEUTRAL_REASONS, quickMealNutrients, mealNow, MEAL_WINDOWS,
+} from '../calc.js';
 import { findFood } from '../foods.js';
 import { evaluateDay, FOCUS, RULES } from '../journey.js';
 import { t } from '../i18n.js';
@@ -14,6 +16,8 @@ import {
 // O que a tela mostrava na última vez, para animar só o que mudou
 // (barras crescendo, missão recém-concluída, meta de água batida, dia validado agora).
 let last = null;
+// Confere a hora a cada minuto para ligar/desligar o lembrete de refeição com o app aberto.
+let mealTimer = null;
 
 const DROP_ICON = `
   <svg class="drop" viewBox="0 0 18 22" aria-hidden="true">
@@ -63,6 +67,14 @@ export function render(root, params) {
   const quickChoice = (meal) => day.entries.find((e) => e.quick && e.meal === meal)?.quick
     || (day.quick?.[meal] === 'nao' ? 'nao' : null);
 
+  // Lembrete da refeição na hora certa: só hoje, dentro da janela e se ainda não foi respondida.
+  const currentMeal = date === today ? mealNow() : null;
+  const isNow = (meal, items) => meal === currentMeal && !items.length && day.quick?.[meal] !== 'nao';
+  const nowBadge = (meal) => {
+    const [a, b] = MEAL_WINDOWS[meal];
+    return `<span class="now-pill"><span class="bell" aria-hidden="true">🔔</span>${t('mealtime.now', { from: a, to: b })}</span>`;
+  };
+
   const entryLine = (e) => `${e.quick ? t('quick.portion') : `${n0(e.grams)} g`} · ${t('today.macroLine', { p: n1(e.protein), c: n1(e.carbs), f: n1(e.fat) })}`;
 
   const detailedCard = (meal, items, kcal) => {
@@ -74,12 +86,14 @@ export function render(root, params) {
       items: t(prevItems.length === 1 ? 'common.item' : 'common.items'),
       kcal: n0(prevKcal),
     };
+    const now = isNow(meal, items);
     return `
-      <section class="card">
+      <section class="card ${now ? 'meal-now' : ''}">
         <div class="meal-head">
           <h3>${t(`meal.${meal}`)}</h3>
-          <span class="muted small">${items.length ? `${n0(kcal)} kcal` : ''}</span>
+          ${now ? nowBadge(meal) : `<span class="muted small">${items.length ? `${n0(kcal)} kcal` : ''}</span>`}
         </div>
+        ${now ? `<p class="meal-now-msg">${t(`mealtime.${meal}`)} ${t('mealtime.detailed')}</p>` : ''}
         ${items.length ? `<div class="entries">${items.map((e) => `
           <div class="entry">
             ${e.quick
@@ -95,7 +109,7 @@ export function render(root, params) {
           <button class="btn-ghost btn-block" data-repeat="${meal}" style="margin-bottom:8px">
             ${t(date === today ? 'today.repeatYesterday' : 'today.repeatPrevious', repeatVars)}
           </button>` : ''}
-        <a class="btn btn-ghost btn-block" href="#/adicionar?d=${date}&m=${meal}">${t('today.add')}</a>
+        <a class="btn ${now ? 'btn-primary add-now' : 'btn-ghost'} btn-block" href="#/adicionar?d=${date}&m=${meal}">${t('today.add')}</a>
       </section>`;
   };
 
@@ -104,12 +118,14 @@ export function render(root, params) {
     const detailedKcal = items.filter((e) => !e.quick).reduce((s, e) => s + e.kcal, 0);
     const btn = (value, cls, key) => `
       <button type="button" class="${cls}" data-quick="${value}" data-meal="${meal}" aria-pressed="${choice === value}">${t(key)}</button>`;
+    const now = isNow(meal, items);
     return `
-      <section class="card">
+      <section class="card ${now ? 'meal-now' : ''}">
         <div class="meal-head">
           <h3>${t(`meal.${meal}`)}</h3>
-          <span class="muted small">${items.length ? `${n0(kcal)} kcal` : ''}</span>
+          ${now ? nowBadge(meal) : `<span class="muted small">${items.length ? `${n0(kcal)} kcal` : ''}</span>`}
         </div>
+        ${now ? `<p class="meal-now-msg">${t(`mealtime.${meal}`)} ${t('mealtime.quick')}</p>` : ''}
         <div class="quick-choices">
           ${btn('sim', 'q-yes', 'quick.yes')}
           ${btn('nao', 'q-no', 'quick.no')}
@@ -251,6 +267,13 @@ export function render(root, params) {
     <dialog id="edit"></dialog>`;
 
   animateIn(root);
+  clearInterval(mealTimer);
+  if (date === today) {
+    mealTimer = setInterval(() => {
+      if (!root.isConnected) return clearInterval(mealTimer); // saiu da tela Hoje
+      if (mealNow() !== currentMeal || dateKey() !== today) refresh();
+    }, 60_000);
+  }
   if (justValidated) toast(t('missions.validatedToast'));
   else if (waterGoalNow) toast(t('water.goal'));
   last = {

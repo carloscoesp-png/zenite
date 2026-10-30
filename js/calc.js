@@ -76,6 +76,17 @@ export function totals(day) {
   );
 }
 
+// ---------- Horário das refeições ----------
+
+// Janela de cada refeição em horas [início, fim) — usada para lembrar o usuário na hora certa.
+export const MEAL_WINDOWS = { cafe: [6, 10], almoco: [11, 14], lanche: [15, 17], jantar: [18, 21], ceia: [21, 23] };
+
+// Refeição cuja janela inclui a hora atual (ou null fora dos horários).
+export function mealNow(now = new Date()) {
+  const h = now.getHours();
+  return Object.keys(MEAL_WINDOWS).find((m) => h >= MEAL_WINDOWS[m][0] && h < MEAL_WINDOWS[m][1]) || null;
+}
+
 // ---------- Modo "Tô sem tempo" ----------
 
 // Parte da meta diária de cada refeição (soma 100%).

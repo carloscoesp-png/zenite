@@ -402,6 +402,26 @@ h1 { color: var(--text); }
 .emblem { animation: emblemGlow 3.5s ease-in-out infinite; }
 @keyframes emblemGlow { 0%, 100% { filter: drop-shadow(0 0 0 transparent); } 50% { filter: drop-shadow(0 0 10px var(--emblem-glow, rgb(212 175 55 / .45))); } }
 
+/* Lembrete na hora da refeição */
+.card.meal-now { border-color: var(--accent); animation: mealGlow 2.6s ease-in-out infinite; }
+@keyframes mealGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(212 175 55 / 0); }
+  50% { box-shadow: 0 0 22px 1px rgb(212 175 55 / .28); }
+}
+.now-pill {
+  display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px;
+  font-size: .75rem; font-weight: 700; color: var(--accent-ink); background: var(--gold-gradient);
+}
+.now-pill .bell { display: inline-block; transform-origin: 50% 10%; animation: bellRing 2.4s ease-in-out infinite; }
+@keyframes bellRing {
+  0%, 60%, 100% { transform: rotate(0); }
+  10% { transform: rotate(16deg); } 20% { transform: rotate(-14deg); }
+  30% { transform: rotate(10deg); } 40% { transform: rotate(-6deg); } 50% { transform: rotate(3deg); }
+}
+.meal-now-msg { margin: 8px 0 0; color: var(--accent-2); font-size: .9rem; font-weight: 600; }
+.btn.add-now, .meal-now .q-yes:not([aria-pressed="true"]) { animation: suggestPulse 1.6s ease-in-out infinite; }
+.meal-now .q-yes:not([aria-pressed="true"]) { border-color: var(--accent); color: var(--accent-2); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
