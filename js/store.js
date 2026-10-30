@@ -123,6 +123,24 @@ export function addEntry(date, meal, food, grams) {
   save();
 }
 
+// Troca a quantidade de um item. per100 = valores por 100 g do alimento.
+export function updateEntry(date, entryId, grams, per100) {
+  const entry = state.days[date]?.entries.find((e) => e.id === entryId);
+  if (!entry) return;
+  Object.assign(entry, { grams }, nutrientsFor(per100, grams));
+  save();
+}
+
+// Copia os itens de uma refeição de outro dia (ex.: repetir o café de ontem).
+export function copyMeal(fromDate, toDate, meal) {
+  const source = state.days[fromDate]?.entries.filter((e) => e.meal === meal) || [];
+  if (!source.length) return 0;
+  const day = touchDay(toDate);
+  day.entries.push(...source.map((e) => ({ ...e, id: uid() })));
+  save();
+  return source.length;
+}
+
 export function removeEntry(date, entryId) {
   const day = state.days[date];
   if (!day) return;

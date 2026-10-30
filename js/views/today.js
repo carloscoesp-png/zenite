@@ -1,7 +1,19 @@
 // Tela principal: resumo do dia, água, refeições e dia neutro.
-import { getState, getDay, MEALS, removeEntry, addWater, setNeutral } from '../store.js';
+import {
+  getState, getDay, MEALS, removeEntry, updateEntry, copyMeal, addWater, setNeutral, nutrientsFor,
+} from '../store.js';
 import { totals, dayStatus, dietRange, NEUTRAL_REASONS } from '../calc.js';
-import { esc, n0, n1, dateKey, addDays, formatDate, ring, progressBar, refresh, toast } from '../ui.js';
+import { findFood } from '../foods.js';
+import { esc, n0, n1, num, dateKey, addDays, formatDate, ring, progressBar, refresh, toast } from '../ui.js';
+
+// Valores por 100 g de um item já registrado: do alimento, se ainda existir,
+// senão a partir do próprio registro.
+function per100Of(entry) {
+  const food = findFood(entry.foodId, getState().customFoods);
+  if (food) return food;
+  const k = 100 / entry.grams;
+  return { kcal: entry.kcal * k, protein: entry.protein * k, carbs: entry.carbs * k, fat: entry.fat * k };
+}
 
 export function render(root, params) {
   const today = dateKey();
@@ -24,9 +36,14 @@ export function render(root, params) {
       ${progressBar(value, target, color)}
     </div>`;
 
+  const previous = getDay(addDays(date, -1));
+
   const meals = MEALS.map((meal) => {
     const items = day.entries.filter((e) => e.meal === meal.id);
     const kcal = items.reduce((s, e) => s + e.kcal, 0);
+    // Repetir só aparece com a refeição vazia, para não duplicar sem querer.
+    const prevItems = items.length ? [] : previous.entries.filter((e) => e.meal === meal.id);
+    const prevKcal = prevItems.reduce((s, e) => s + e.kcal, 0);
     return `
       <section class="card">
         <div class="meal-head">
@@ -35,10 +52,16 @@ export function render(root, params) {
         </div>
         ${items.length ? `<div class="entries">${items.map((e) => `
           <div class="entry">
-            <div class="name">${esc(e.name)}<small>${n0(e.grams)} g · P ${n1(e.protein)} · C ${n1(e.carbs)} · G ${n1(e.fat)}</small></div>
+            <button class="name food-item" style="padding:0" data-edit="${e.id}" aria-label="Editar ${esc(e.name)}">
+              <span>${esc(e.name)}<small>${n0(e.grams)} g · P ${n1(e.protein)} · C ${n1(e.carbs)} · G ${n1(e.fat)}</small></span>
+            </button>
             <span class="small">${n0(e.kcal)} kcal</span>
             <button class="btn-ghost icon-btn" data-remove="${e.id}" aria-label="Remover ${esc(e.name)}">✕</button>
           </div>`).join('')}</div>` : ''}
+        ${prevItems.length ? `
+          <button class="btn-ghost btn-block" data-repeat="${meal.id}" style="margin-bottom:8px">
+            ↻ Repetir ${date === today ? 'de ontem' : 'do dia anterior'} (${prevItems.length} ${prevItems.length === 1 ? 'item' : 'itens'}, ${n0(prevKcal)} kcal)
+          </button>` : ''}
         <a class="btn btn-ghost btn-block" href="#/adicionar?d=${date}&m=${meal.id}">+ Adicionar</a>
       </section>`;
   }).join('');
@@ -93,13 +116,72 @@ export function render(root, params) {
         <option value="">Dia normal</option>
         ${NEUTRAL_REASONS.map((r) => `<option value="${r.id}" ${day.neutral === r.id ? 'selected' : ''}>${r.label}</option>`).join('')}
       </select>
-    </section>`;
+    </section>
+
+    <dialog id="edit"></dialog>`;
+
+  const editDialog = root.querySelector('#edit');
+
+  function openEdit(entry) {
+    const per100 = per100Of(entry);
+    editDialog.innerHTML = `
+      <form method="dialog" id="edit-form">
+        <h2>${esc(entry.name)}</h2>
+        <label for="edit-grams">Quantidade (g)</label>
+        <input id="edit-grams" inputmode="decimal" value="${n0(entry.grams)}">
+        <div class="macros-preview" id="edit-preview"></div>
+        <div class="grid-2">
+          <button type="button" id="edit-cancel">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>`;
+    const grams = editDialog.querySelector('#edit-grams');
+    const preview = editDialog.querySelector('#edit-preview');
+    const update = () => {
+      const g = num(grams.value);
+      const n = nutrientsFor(per100, Number.isFinite(g) ? g : 0);
+      preview.innerHTML = `
+        <div><b>${n0(n.kcal)}</b><small>kcal</small></div>
+        <div><b>${n1(n.protein)}</b><small>proteína</small></div>
+        <div><b>${n1(n.carbs)}</b><small>carbo</small></div>
+        <div><b>${n1(n.fat)}</b><small>gordura</small></div>`;
+    };
+    update();
+    grams.addEventListener('input', update);
+    grams.addEventListener('focus', () => setTimeout(() => grams.select(), 0));
+    editDialog.querySelector('#edit-cancel').addEventListener('click', () => editDialog.close());
+    editDialog.querySelector('#edit-form').addEventListener('submit', (ev) => {
+      const g = num(grams.value);
+      if (!(g > 0 && g <= 5000)) {
+        ev.preventDefault();
+        return toast('Informe uma quantidade entre 1 e 5000 g.');
+      }
+      updateEntry(date, entry.id, g, per100);
+      toast('Quantidade atualizada');
+      refresh();
+    });
+    editDialog.showModal();
+    document.activeElement?.blur();
+  }
 
   root.addEventListener('click', (ev) => {
     const remove = ev.target.closest('[data-remove]');
     if (remove) {
       removeEntry(date, remove.dataset.remove);
       toast('Item removido');
+      refresh();
+      return;
+    }
+    const edit = ev.target.closest('[data-edit]');
+    if (edit) {
+      const entry = day.entries.find((e) => e.id === edit.dataset.edit);
+      if (entry) openEdit(entry);
+      return;
+    }
+    const repeat = ev.target.closest('[data-repeat]');
+    if (repeat) {
+      const n = copyMeal(addDays(date, -1), date, repeat.dataset.repeat);
+      toast(`${n} ${n === 1 ? 'item copiado' : 'itens copiados'}`);
       refresh();
       return;
     }
