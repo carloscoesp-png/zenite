@@ -7,8 +7,18 @@ import { findFood } from '../foods.js';
 import { evaluateDay, FOCUS, RULES } from '../journey.js';
 import { t } from '../i18n.js';
 import {
-  esc, n0, n1, num, dateKey, addDays, formatDate, ring, progressBar, macrosPreview, refresh, toast,
+  esc, n0, n1, num, dateKey, addDays, formatDate, ring, progressBar, macrosPreview, animateIn, refresh, toast,
 } from '../ui.js';
+
+// O que a tela mostrava na última vez, para animar só o que mudou
+// (barras crescendo, missão recém-concluída, meta de água batida, dia validado agora).
+let last = null;
+
+const DROP_ICON = `
+  <svg class="drop" viewBox="0 0 18 22" aria-hidden="true">
+    <path d="M9 1 C9 1 2 9.5 2 14 a7 7 0 0 0 14 0 C16 9.5 9 1 9 1Z" fill="var(--water)"/>
+    <path d="M6 14.5 a3 3 0 0 0 3 3" stroke="#fff" stroke-opacity=".7" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+  </svg>`;
 
 // Valores por 100 g de um item já registrado: do alimento, se ainda existir,
 // senão a partir do próprio registro.
@@ -34,10 +44,14 @@ export function render(root, params) {
     : date === addDays(today, -1) ? t('today.yesterday') : formatDate(date, { weekday: 'long' });
   const remaining = diff >= 0 ? t('today.remaining', { n: n0(diff) }) : t('today.over', { n: n0(-diff) });
 
-  const macro = (label, value, target, color) => `
+  // Valores anteriores da mesma data (ou zero ao entrar na tela, para tudo crescer).
+  const prev = last && last.date === date ? last : null;
+  const from = (key, value) => (prev ? prev[key] : 0) ?? value;
+
+  const macro = (key, label, value, target, color) => `
     <div class="macro">
       <div class="row between"><span>${label}</span><span class="muted">${n0(value)} / ${n0(target)} g</span></div>
-      ${progressBar(value, target, color)}
+      ${progressBar(value, target, color, from(key, value))}
     </div>`;
 
   const previous = getDay(addDays(date, -1));
@@ -80,15 +94,27 @@ export function render(root, params) {
   // Missões do dia (Fase 2)
   const quest = evaluateDay(day, getState().profile.focus || FOCUS, date, today);
   const editable = date >= addDays(today, -RULES.editableDays);
+  const doneIds = new Set([...quest.missions.filter((m) => m.done).map((m) => m.id), ...(quest.diet ? ['diet'] : [])]);
+  // "pop" só na missão que acabou de ser concluída nesta tela
+  const doneCls = (id) => (doneIds.has(id) ? `done${prev && !prev.doneIds.has(id) ? ' pop' : ''}` : '');
   const missionRow = (m) => {
     const inner = `
       <span class="check">${m.done ? '✓' : ''}</span>
       <span class="text">${t(`mission.${m.id}`)}<small>${t(`attr.${m.attr}`)}${m.auto ? ` · ${t('missions.auto')}` : ''}</small></span>
       <span class="xp">+${m.xp} XP</span>`;
     return m.auto || !editable
-      ? `<li><div class="mission ${m.done ? 'done' : ''}">${inner}</div></li>`
-      : `<li><button type="button" class="mission ${m.done ? 'done' : ''}" data-mission="${m.id}" aria-pressed="${m.done}">${inner}</button></li>`;
+      ? `<li><div class="mission ${doneCls(m.id)}">${inner}</div></li>`
+      : `<li><button type="button" class="mission ${doneCls(m.id)}" data-mission="${m.id}" aria-pressed="${m.done}">${inner}</button></li>`;
   };
+  const justValidated = prev && !prev.validated && quest.validated;
+
+  // Água: alerta quando ela é o que falta (dieta e as outras missões automáticas feitas).
+  const waterLeft = Math.max(0, targets.waterMl - water);
+  const otherAutoDone = quest.missions.filter((m) => m.auto && m.id !== 'c-water').every((m) => m.done);
+  const waterNudge = date === today && !quest.neutral && waterLeft > 0 && quest.diet && otherAutoDone;
+  const waterValidates = waterNudge && !quest.validated && quest.done + 1 >= quest.need;
+  const suggestMl = waterLeft <= 250 ? 250 : 500;
+  const waterGoalNow = prev && prev.water < targets.waterMl && water >= targets.waterMl;
   const missing = Math.max(0, quest.need - quest.done);
   const missionsCard = quest.neutral
     ? `<section class="card"><h2>${t('missions.title')}</h2><p class="muted small" style="margin:0">${t('missions.neutral')}</p></section>`
@@ -100,14 +126,14 @@ export function render(root, params) {
       </div>
       <ul class="missions">
         ${quest.missions.map(missionRow).join('')}
-        <li><div class="mission ${quest.diet ? 'done' : ''}">
+        <li><div class="mission ${doneCls('diet')}">
           <span class="check">${quest.diet ? '✓' : ''}</span>
           <span class="text">${t('status.cumprida')}<small>${t('missions.auto')}</small></span>
           <span class="xp">+${RULES.xp.diet} XP</span>
         </div></li>
       </ul>
       ${quest.validated
-        ? `<div class="validated">★ ${t('missions.validated')}</div>`
+        ? `<div class="validated ${justValidated ? 'burst' : ''}">★ ${t('missions.validated')}</div>`
         : `<p class="muted small" style="margin:12px 0 0">${[
           missing ? t(missing === 1 ? 'missions.needOne' : 'missions.need', { n: missing }) : '',
           quest.diet ? '' : t('missions.needDiet'),
@@ -130,29 +156,33 @@ export function render(root, params) {
         <span class="badge ${status.cls}">${t(status.key)}</span>
       </div>
       <div class="summary">
-        ${ring(sum.kcal, targets.kcal, status.cls)}
+        ${ring(sum.kcal, targets.kcal, status.cls, from('kcal', sum.kcal))}
         <div class="summary-lines">
           <p style="margin-bottom:4px">${remaining}</p>
           <p class="muted small" style="margin:0">${t('today.target', { n: n0(targets.kcal) })}<br>${t('today.range', { min: n0(range.min), max: n0(range.max) })}</p>
         </div>
       </div>
-      ${macro(t('macro.protein'), sum.protein, targets.protein, 'var(--protein)')}
-      ${macro(t('macro.carbs'), sum.carbs, targets.carbs, 'var(--carbs)')}
-      ${macro(t('macro.fat'), sum.fat, targets.fat, 'var(--fat)')}
+      ${macro('protein', t('macro.protein'), sum.protein, targets.protein, 'var(--protein)')}
+      ${macro('carbs', t('macro.carbs'), sum.carbs, targets.carbs, 'var(--carbs)')}
+      ${macro('fat', t('macro.fat'), sum.fat, targets.fat, 'var(--fat)')}
     </section>
 
     ${missionsCard}
 
-    <section class="card">
+    <section class="card ${waterNudge ? 'water-nudge' : ''} ${waterGoalNow ? 'water-splash' : ''}">
       <div class="row between">
         <h2 style="margin:0">${t('today.water')}</h2>
         <span class="muted small">${n1(water / 1000)} / ${n1(targets.waterMl / 1000)} L</span>
       </div>
-      ${progressBar(water, targets.waterMl, 'var(--water)')}
+      <div class="water-tank">
+        <span class="fill" style="width:${Math.min(100, (from('water', water) / targets.waterMl) * 100)}%"
+          data-to-width="${Math.min(100, (water / targets.waterMl) * 100)}%"></span>
+      </div>
+      ${waterNudge ? `<p class="water-msg">${DROP_ICON}<span>${t(waterValidates ? 'water.onlyToValidate' : 'water.onlyToGoal', { n: n0(waterLeft) })}</span></p>` : ''}
       <div class="water-actions">
         <button data-water="-250" ${water <= 0 ? 'disabled' : ''}>− 250 ml</button>
-        <button data-water="250">+ 250 ml</button>
-        <button data-water="500">+ 500 ml</button>
+        <button data-water="250" class="${waterNudge && suggestMl === 250 ? 'suggest' : ''}">+ 250 ml</button>
+        <button data-water="500" class="${waterNudge && suggestMl === 500 ? 'suggest' : ''}">+ 500 ml</button>
       </div>
     </section>
 
@@ -168,6 +198,14 @@ export function render(root, params) {
     </section>
 
     <dialog id="edit"></dialog>`;
+
+  animateIn(root);
+  if (justValidated) toast(t('missions.validatedToast'));
+  else if (waterGoalNow) toast(t('water.goal'));
+  last = {
+    date, water, kcal: sum.kcal, protein: sum.protein, carbs: sum.carbs, fat: sum.fat,
+    doneIds, validated: quest.validated,
+  };
 
   const editDialog = root.querySelector('#edit');
 

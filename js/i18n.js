@@ -149,6 +149,9 @@ const DICT = {
     'focus.save': 'Salvar áreas', 'focus.saved': 'Áreas salvas',
     'avatar.add': 'Adicionar foto de perfil', 'avatar.change': 'Trocar foto de perfil', 'avatar.remove': 'Remover foto',
     'avatar.saved': 'Foto atualizada', 'avatar.error': 'Não foi possível usar essa imagem.',
+    'water.onlyToValidate': 'Falta só a água: {n} ml para validar o dia',
+    'water.onlyToGoal': 'Falta só a água: {n} ml para bater a meta',
+    'water.goal': 'Meta de água batida!', 'missions.validatedToast': 'Dia validado! +1 nível',
   },
 
   en: {
@@ -291,6 +294,9 @@ const DICT = {
     'focus.save': 'Save areas', 'focus.saved': 'Areas saved',
     'avatar.add': 'Add profile photo', 'avatar.change': 'Change profile photo', 'avatar.remove': 'Remove photo',
     'avatar.saved': 'Photo updated', 'avatar.error': "Couldn't use that image.",
+    'water.onlyToValidate': 'Only water left: {n} ml to validate the day',
+    'water.onlyToGoal': 'Only water left: {n} ml to hit your target',
+    'water.goal': 'Water target reached!', 'missions.validatedToast': 'Day validated! +1 level',
   },
 
   es: {
@@ -433,6 +439,9 @@ const DICT = {
     'focus.save': 'Guardar áreas', 'focus.saved': 'Áreas guardadas',
     'avatar.add': 'Agregar foto de perfil', 'avatar.change': 'Cambiar foto de perfil', 'avatar.remove': 'Quitar foto',
     'avatar.saved': 'Foto actualizada', 'avatar.error': 'No se pudo usar esa imagen.',
+    'water.onlyToValidate': 'Solo falta el agua: {n} ml para validar el día',
+    'water.onlyToGoal': 'Solo falta el agua: {n} ml para cumplir la meta',
+    'water.goal': '¡Meta de agua cumplida!', 'missions.validatedToast': '¡Día validado! +1 nivel',
   },
 };
 

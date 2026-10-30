@@ -2,7 +2,7 @@
 import { getState, getDay, rebirth } from '../store.js';
 import { computeJourney, ATTRS, RULES, DIVISION_COLORS } from '../journey.js';
 import { t } from '../i18n.js';
-import { esc, n0, dateKey, addDays, parseKey, formatDate, progressBar, refresh, toast } from '../ui.js';
+import { esc, n0, dateKey, addDays, parseKey, formatDate, progressBar, animateIn, refresh, toast } from '../ui.js';
 
 // Emblema da Divisão: escudo com degradê na cor da Divisão e estrela no centro.
 // Na Lenda, cada renascimento extra vira uma estrela embaixo do escudo.
@@ -19,7 +19,7 @@ function emblem(division, stars) {
     return `<polygon points="${pts.join(' ')}"/>`;
   };
   return `
-    <svg class="emblem" viewBox="0 0 96 108" role="img" aria-label="${esc(t('journey.division', { name: t(`division.${division}`) }))}">
+    <svg class="emblem" style="--emblem-glow:${light}99" viewBox="0 0 96 108" role="img" aria-label="${esc(t('journey.division', { name: t(`division.${division}`) }))}">
       <defs>
         <linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stop-color="${light}"/><stop offset="1" stop-color="${dark}"/>
@@ -67,7 +67,7 @@ export function render(root) {
           <p class="muted small" style="margin:0">${t('journey.levelOf', { n: j.level, max: RULES.maxLevel })} · ${t('journey.xp', { n: n0(j.xp) })}</p>
         </div>
       </div>
-      <div style="margin-top:12px">${progressBar(j.level, RULES.maxLevel, 'var(--gold-gradient)')}</div>
+      <div style="margin-top:12px">${progressBar(j.level, RULES.maxLevel, 'var(--gold-gradient)', 0)}</div>
       <p class="muted small" style="margin:8px 0 0">${t('journey.levelHint')} ${esc(nextLabel)}.</p>
       <p class="hint">${t('journey.cycleStart', { date: formatDate(j.start, { day: 'numeric', month: 'long', year: 'numeric' }) })}${j.rebirths ? ` · ${t('journey.rebirths', { n: j.rebirths })}` : ''}</p>
     </section>
@@ -111,6 +111,8 @@ export function render(root) {
     </section>
 
     <p class="muted small" style="text-align:center">${t('journey.ranking')}</p>`;
+
+  animateIn(root);
 
   root.querySelector('#rebirth')?.addEventListener('click', () => {
     if (!confirm(t('journey.confirmRebirth'))) return;

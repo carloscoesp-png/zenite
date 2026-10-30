@@ -305,3 +305,83 @@ dialog::backdrop { background: rgb(0 0 0 / .55); }
 
 h1 { color: var(--text); }
 .card h2 { color: var(--accent-2); font-weight: 600; letter-spacing: .01em; }
+
+/* ===== Animações =====
+   Sempre com propósito: mostrar mudança, chamar atenção para o que falta ou comemorar.
+   Tudo desliga quando o aparelho pede para reduzir movimento. */
+
+/* Entrada dos cartões ao trocar de tela (não roda em atualizações da mesma tela) */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.enter .card { animation: fadeUp .38s ease-out both; }
+.enter .card:nth-of-type(2) { animation-delay: .04s; }
+.enter .card:nth-of-type(3) { animation-delay: .08s; }
+.enter .card:nth-of-type(4) { animation-delay: .12s; }
+.enter .card:nth-of-type(n+5) { animation-delay: .16s; }
+
+/* Barras e anel crescem de onde estavam até o valor novo */
+.bar > span, .water-tank .fill { transition: width .8s cubic-bezier(.22, 1, .36, 1); }
+.ring .ring-fill { transition: stroke-dasharray .9s cubic-bezier(.22, 1, .36, 1); }
+
+/* Água: "tanque" com reflexo de líquido correndo */
+.water-tank { position: relative; height: 12px; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin-top: 6px; }
+.water-tank .fill {
+  position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit;
+  background: linear-gradient(90deg, #8fb1cf, var(--water));
+}
+.water-tank .fill::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(110deg, transparent 20%, rgb(255 255 255 / .45) 45%, transparent 70%);
+  background-size: 200% 100%; animation: liquid 2.6s linear infinite;
+}
+@keyframes liquid { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+
+/* Água: alerta quando ela é o que falta */
+.card.water-nudge { position: relative; animation: waterGlow 2.4s ease-in-out infinite; }
+@keyframes waterGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(150 190 230 / 0); border-color: var(--border); }
+  50% { box-shadow: 0 0 22px 2px rgb(150 190 230 / .35); border-color: #9fc3e6; }
+}
+.water-msg { display: flex; align-items: center; gap: 8px; margin: 10px 0 0; color: #cfe0f0; font-size: .9rem; font-weight: 600; }
+.drop { width: 18px; height: 22px; flex: none; animation: dropBob 1.4s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes dropBob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-4px) scale(1.05, .95); }
+  60% { transform: translateY(0) scale(.95, 1.05); }
+}
+.water-actions button.suggest { border-color: var(--accent); color: var(--accent-2); animation: suggestPulse 1.6s ease-in-out infinite; }
+@keyframes suggestPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(212 175 55 / .0); }
+  50% { box-shadow: 0 0 0 4px rgb(212 175 55 / .25); }
+}
+
+/* Água: "splash" ao bater a meta */
+.card.water-splash { position: relative; overflow: hidden; }
+.card.water-splash::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; margin: -20px 0 0 -20px;
+  border-radius: 50%; border: 3px solid var(--water); opacity: 0; pointer-events: none;
+  animation: splash .9s ease-out;
+}
+@keyframes splash { from { transform: scale(.2); opacity: .9; } to { transform: scale(14); opacity: 0; } }
+
+/* Missão concluída agora: "pop" dourado */
+.mission.pop .check { animation: pop .5s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes pop { 0% { transform: scale(.4); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+
+/* Dia validado: brilho que passa pela faixa; ao validar agora, entra com destaque */
+.validated { position: relative; overflow: hidden; }
+.validated::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgb(255 236 170 / .35) 50%, transparent 70%);
+  background-size: 250% 100%; animation: shine 3.2s ease-in-out infinite;
+}
+@keyframes shine { 0% { background-position: 160% 0; } 60%, 100% { background-position: -60% 0; } }
+.validated.burst { animation: burst .7s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes burst { 0% { transform: scale(.85); box-shadow: 0 0 0 0 rgb(212 175 55 / .6); } 100% { transform: scale(1); box-shadow: 0 0 0 18px rgb(212 175 55 / 0); } }
+
+/* Emblema da Divisão com brilho suave */
+.emblem { animation: emblemGlow 3.5s ease-in-out infinite; }
+@keyframes emblemGlow { 0%, 100% { filter: drop-shadow(0 0 0 transparent); } 50% { filter: drop-shadow(0 0 10px var(--emblem-glow, rgb(212 175 55 / .45))); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

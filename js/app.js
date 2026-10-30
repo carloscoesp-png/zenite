@@ -26,6 +26,7 @@ function render({ resetScroll }) {
 
   // Um contêiner novo a cada renderização, para não acumular listeners.
   const root = document.createElement('div');
+  if (resetScroll) root.className = 'enter'; // cartões entram suavemente só ao trocar de tela
   document.getElementById('app').replaceChildren(root);
   routes[name].render(root, params);
 

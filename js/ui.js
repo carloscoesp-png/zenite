@@ -66,15 +66,17 @@ export function toast(message) {
 
 const STATUS_COLOR = { ok: 'var(--accent)', info: 'var(--info)', bad: 'var(--bad)', neutral: 'var(--text-2)' };
 
-export function ring(consumed, target, cls) {
+// Anel de calorias. "from" = valor anterior, para o anel crescer até o novo (ver animateIn).
+export function ring(consumed, target, cls, from = consumed) {
   const r = 50;
   const c = 2 * Math.PI * r;
-  const pct = target > 0 ? Math.min(consumed / target, 1) : 0;
+  const frac = (v) => (target > 0 ? Math.min(v / target, 1) : 0);
+  const pct = frac(consumed);
   return `
     <svg class="ring" viewBox="0 0 120 120" role="img" aria-label="${t('chart.ringAria', { a: n0(consumed), b: n0(target) })}">
       <circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="10"/>
-      ${pct > 0 ? `<circle cx="60" cy="60" r="${r}" fill="none" stroke="${STATUS_COLOR[cls] || STATUS_COLOR.info}" stroke-width="10"
-        stroke-linecap="round" stroke-dasharray="${c * pct} ${c}" transform="rotate(-90 60 60)"/>` : ''}
+      ${pct > 0 ? `<circle class="ring-fill" cx="60" cy="60" r="${r}" fill="none" stroke="${STATUS_COLOR[cls] || STATUS_COLOR.info}" stroke-width="10"
+        stroke-linecap="round" stroke-dasharray="${c * frac(from)} ${c}" data-to-dash="${c * pct} ${c}" transform="rotate(-90 60 60)"/>` : ''}
       <text x="60" y="58" text-anchor="middle" font-size="22" font-weight="700">${n0(consumed)}</text>
       <text x="60" y="78" text-anchor="middle" font-size="11" style="fill: var(--text-2)">kcal</text>
     </svg>`;
@@ -89,9 +91,20 @@ export function macrosPreview(n) {
     <div><b>${n1(n.fat)}</b><small>${t('macro.short.fat')}</small></div>`;
 }
 
-export function progressBar(value, target, color) {
-  const pct = target > 0 ? Math.min((value / target) * 100, 100) : 0;
-  return `<div class="bar"><span style="width:${pct}%; background:${color}"></span></div>`;
+// Barra de progresso. "from" = valor anterior, para a barra crescer até o novo (ver animateIn).
+export function progressBar(value, target, color, from = value) {
+  const pct = (v) => (target > 0 ? Math.min((v / target) * 100, 100) : 0);
+  return `<div class="bar"><span style="width:${pct(from)}%; background:${color}" data-to-width="${pct(value)}%"></span></div>`;
+}
+
+// Leva barras e anéis do valor anterior ao novo, depois que a tela foi desenhada.
+export function animateIn(root) {
+  const apply = () => {
+    root.querySelectorAll('[data-to-width]').forEach((el) => (el.style.width = el.dataset.toWidth));
+    root.querySelectorAll('[data-to-dash]').forEach((el) => el.setAttribute('stroke-dasharray', el.dataset.toDash));
+  };
+  requestAnimationFrame(() => requestAnimationFrame(apply));
+  setTimeout(apply, 150); // garantia: em aba em segundo plano o requestAnimationFrame fica pausado
 }
 
 // Linha do peso ao longo do tempo. points: [{date, value}], ordenados por data.
