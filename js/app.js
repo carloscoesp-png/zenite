@@ -1,4 +1,4 @@
-// Roteador simples por hash: #/hoje, #/adicionar?d=...&m=..., #/progresso, #/perfil, #/cadastro
+// Roteador simples por hash: #/hoje, #/adicionar?d=...&m=..., #/jornada, #/progresso, #/perfil, #/cadastro
 import { getState } from './store.js';
 import { t, lang } from './i18n.js';
 import * as onboarding from './views/onboarding.js';
@@ -6,8 +6,9 @@ import * as today from './views/today.js';
 import * as add from './views/add.js';
 import * as progress from './views/progress.js';
 import * as profile from './views/profile.js';
+import * as journey from './views/journey.js';
 
-const routes = { cadastro: onboarding, hoje: today, adicionar: add, progresso: progress, perfil: profile };
+const routes = { cadastro: onboarding, hoje: today, adicionar: add, jornada: journey, progresso: progress, perfil: profile };
 const FULLSCREEN = new Set(['cadastro', 'adicionar']);
 
 function parseHash() {

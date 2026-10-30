@@ -1,9 +1,10 @@
 // Tela principal: resumo do dia, água, refeições e dia neutro.
 import {
-  getState, getDay, MEALS, removeEntry, updateEntry, copyMeal, addWater, setNeutral, nutrientsFor,
+  getState, getDay, MEALS, removeEntry, updateEntry, copyMeal, addWater, setNeutral, nutrientsFor, toggleMission,
 } from '../store.js';
 import { totals, dayStatus, dietRange, NEUTRAL_REASONS } from '../calc.js';
 import { findFood } from '../foods.js';
+import { evaluateDay, FOCUS, RULES } from '../journey.js';
 import { t } from '../i18n.js';
 import {
   esc, n0, n1, num, dateKey, addDays, formatDate, ring, progressBar, macrosPreview, refresh, toast,
@@ -76,6 +77,44 @@ export function render(root, params) {
 
   const water = day.waterMl || 0;
 
+  // Missões do dia (Fase 2)
+  const quest = evaluateDay(day, getState().profile.focus || FOCUS, date, today);
+  const editable = date >= addDays(today, -RULES.editableDays);
+  const missionRow = (m) => {
+    const inner = `
+      <span class="check">${m.done ? '✓' : ''}</span>
+      <span class="text">${t(`mission.${m.id}`)}<small>${t(`attr.${m.attr}`)}${m.auto ? ` · ${t('missions.auto')}` : ''}</small></span>
+      <span class="xp">+${m.xp} XP</span>`;
+    return m.auto || !editable
+      ? `<li><div class="mission ${m.done ? 'done' : ''}">${inner}</div></li>`
+      : `<li><button type="button" class="mission ${m.done ? 'done' : ''}" data-mission="${m.id}" aria-pressed="${m.done}">${inner}</button></li>`;
+  };
+  const missing = Math.max(0, quest.need - quest.done);
+  const missionsCard = quest.neutral
+    ? `<section class="card"><h2>${t('missions.title')}</h2><p class="muted small" style="margin:0">${t('missions.neutral')}</p></section>`
+    : `
+    <section class="card">
+      <div class="row between">
+        <h2 style="margin:0">${t('missions.title')}</h2>
+        <span class="muted small">${t('missions.progress', { done: quest.done, total: quest.missions.length })}</span>
+      </div>
+      <ul class="missions">
+        ${quest.missions.map(missionRow).join('')}
+        <li><div class="mission ${quest.diet ? 'done' : ''}">
+          <span class="check">${quest.diet ? '✓' : ''}</span>
+          <span class="text">${t('status.cumprida')}<small>${t('missions.auto')}</small></span>
+          <span class="xp">+${RULES.xp.diet} XP</span>
+        </div></li>
+      </ul>
+      ${quest.validated
+        ? `<div class="validated">★ ${t('missions.validated')}</div>`
+        : `<p class="muted small" style="margin:12px 0 0">${[
+          missing ? t(missing === 1 ? 'missions.needOne' : 'missions.need', { n: missing }) : '',
+          quest.diet ? '' : t('missions.needDiet'),
+        ].filter(Boolean).join(' · ')}</p>`}
+      ${editable ? '' : `<p class="hint">${t('missions.locked')}</p>`}
+    </section>`;
+
   root.innerHTML = `
     <div class="datebar">
       <a class="btn btn-ghost icon-btn" href="#/hoje?d=${addDays(date, -1)}" aria-label="${t('today.prevDay')}">‹</a>
@@ -101,6 +140,8 @@ export function render(root, params) {
       ${macro(t('macro.carbs'), sum.carbs, targets.carbs, 'var(--carbs)')}
       ${macro(t('macro.fat'), sum.fat, targets.fat, 'var(--fat)')}
     </section>
+
+    ${missionsCard}
 
     <section class="card">
       <div class="row between">
@@ -179,6 +220,12 @@ export function render(root, params) {
     if (edit) {
       const entry = day.entries.find((e) => e.id === edit.dataset.edit);
       if (entry) openEdit(entry);
+      return;
+    }
+    const mission = ev.target.closest('[data-mission]');
+    if (mission) {
+      toggleMission(date, mission.dataset.mission);
+      refresh();
       return;
     }
     const repeat = ev.target.closest('[data-repeat]');

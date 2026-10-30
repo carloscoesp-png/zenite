@@ -30,6 +30,20 @@ então para instalar de verdade é preciso publicar (GitHub Pages, Netlify, Verc
 - Exportar e importar cópia de segurança (JSON) e apagar todos os dados.
 - Funciona sem internet depois do primeiro acesso (service worker).
 
+## Jornada (Fase 2)
+
+Regras em `RULES`, no topo de `js/journey.js`. Tudo é recalculado a partir do histórico de dias.
+
+- **Missões do dia:** 3 automáticas de Constituição (registrar café, almoço e jantar; meta de água; ≥90% da meta de
+  proteína) + 1 manual por área escolhida (Força, Agilidade, Sabedoria, Carisma). Manuais podem ser marcadas hoje e ontem.
+- **Dia validado = +1 nível** (0 a 365): ≥50% das missões **e** dieta cumprida. Dia neutro não conta nem pune.
+- **Atributos (-8 a 20):** +1 ponto a cada 13 dias ativos na área (Constituição: 2 das 3 automáticas).
+  Usando o app 14 dias sem atividade numa área, ela perde 1 ponto. Dia sem nenhum registro não conta como falha.
+- **XP:** 10 por missão automática, 20 por manual, 30 pela dieta cumprida.
+- **Divisões:** Bronze → Prata → Ouro → Platina → Diamante → Mestre → Lenda; depois, uma estrela por ciclo.
+  Renascer (no nível 365) sobe a Divisão e zera nível e atributos; histórico e dados de saúde ficam.
+- Ranking por Divisão: depende de contas e servidor (próxima etapa).
+
 ## Estrutura
 
 | Arquivo | Papel |
@@ -37,6 +51,7 @@ então para instalar de verdade é preciso publicar (GitHub Pages, Netlify, Verc
 | `js/i18n.js` | Textos da interface em pt-BR, en e es (`t('chave')`). Nomes de alimentos e porções ficam em português. |
 | `js/store.js` | Estado e persistência. Cada dia guarda cópia das metas e dos nutrientes, para o histórico não mudar. |
 | `js/calc.js` | Metas, IMC e status "dieta cumprida". |
+| `js/journey.js` | Missões, nível, atributos, XP, Divisões e regras de balanceamento (`RULES`). |
 | `js/taco.js` | TACO 4ª edição oficial (591 alimentos), gerada por `tools/convert_taco.py`. Não editar à mão. |
 | `js/portions.js` | Porções caseiras por regra de nome (a TACO não traz porções). |
 | `js/dishes.js` | Pratos e lanches prontos (prato feito, X-tudo, pizza, churrasco...) como receitas de ingredientes. |

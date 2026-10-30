@@ -1,11 +1,12 @@
 // Perfil: idioma, metas diárias, dados pessoais e cópia de segurança.
-import { getState, setProfile, setTargets, replaceState, resetAll, setLang } from '../store.js';
+import { getState, setProfile, setTargets, replaceState, resetAll, setLang, setFocus } from '../store.js';
 import { suggestTargets, tdee } from '../calc.js';
+import { FOCUS } from '../journey.js';
 import { t, langFlags } from '../i18n.js';
 import { esc, n0, num, dateKey, refresh, toast } from '../ui.js';
-import { profileFields, readProfile } from './profile-form.js';
+import { profileFields, readProfile, focusFields, readFocus } from './profile-form.js';
 
-const VERSION = '0.4';
+const VERSION = '0.5';
 
 export function render(root) {
   const s = getState();
@@ -39,6 +40,13 @@ export function render(root) {
           <button type="button" id="suggest">${t('prof.useSuggestion')}</button>
           <button type="submit" class="btn-primary">${t('prof.saveTargets')}</button>
         </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <form id="focus-form">
+        ${focusFields(s.profile.focus || FOCUS)}
+        <button type="submit" class="btn-primary btn-block">${t('focus.save')}</button>
       </form>
     </section>
 
@@ -87,6 +95,13 @@ export function render(root) {
     if (!(next.waterMl >= 500 && next.waterMl <= 8000)) return toast(t('prof.errWater'));
     setTargets(next, dateKey());
     toast(t('prof.targetsSaved'));
+    refresh();
+  });
+
+  root.querySelector('#focus-form').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    setFocus(readFocus(ev.currentTarget));
+    toast(t('focus.saved'));
     refresh();
   });
 

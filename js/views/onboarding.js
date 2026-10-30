@@ -3,7 +3,7 @@ import { getState, setProfile, setTargets, addWeight, setLang } from '../store.j
 import { suggestTargets } from '../calc.js';
 import { t, langFlags } from '../i18n.js';
 import { dateKey, refresh, toast } from '../ui.js';
-import { profileFields, readProfile } from './profile-form.js';
+import { profileFields, readProfile, focusFields, readFocus } from './profile-form.js';
 
 export function render(root) {
   if (getState().profile) {
@@ -19,6 +19,7 @@ export function render(root) {
     <p class="muted">${t('onb.intro')}</p>
     <form id="onboarding" class="card" novalidate>
       ${profileFields()}
+      ${focusFields()}
       <label class="choice" style="margin-bottom:16px">
         <input type="checkbox" name="consent" required>
         <span>${t('onb.consent')}<small>${t('onb.consentHint')}</small></span>
@@ -41,7 +42,7 @@ export function render(root) {
     if (!form.consent.checked) return toast(t('onb.consentRequired'));
 
     const today = dateKey();
-    setProfile({ ...profile, createdAt: today });
+    setProfile({ ...profile, focus: readFocus(form), createdAt: today });
     setTargets(suggestTargets(profile), today);
     addWeight(today, profile.weightKg, profile.bodyFat);
     toast(t('onb.done'));

@@ -1,5 +1,6 @@
 // Campos do perfil, usados no cadastro e na edição do perfil.
 import { ACTIVITY, GOALS, ageFrom } from '../calc.js';
+import { FOCUS } from '../journey.js';
 import { t } from '../i18n.js';
 import { esc, num } from '../ui.js';
 
@@ -60,6 +61,24 @@ export function profileFields(p = {}) {
       <div class="choices">${radio('goal', GOALS, p.goal)}</div>
     </div>`;
 }
+
+// Áreas para desenvolver (cada uma vira uma missão diária).
+export function focusFields(selected = FOCUS) {
+  return `
+    <div class="field">
+      <label>${t('focus.title')}</label>
+      <p class="hint" style="margin:0 0 8px">${t('focus.help')}</p>
+      <div class="choices">
+        ${FOCUS.map((a) => `
+          <label class="choice">
+            <input type="checkbox" name="focus" value="${a}" ${selected.includes(a) ? 'checked' : ''}>
+            <span>${t(`attr.${a}`)}<small>${t(`mission.${a}`)}</small></span>
+          </label>`).join('')}
+      </div>
+    </div>`;
+}
+
+export const readFocus = (form) => new FormData(form).getAll('focus').filter((a) => FOCUS.includes(a));
 
 // Lê e valida o formulário. Retorna { profile } ou { error } (texto já traduzido).
 export function readProfile(form) {

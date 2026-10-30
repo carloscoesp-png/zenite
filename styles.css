@@ -214,7 +214,7 @@ dialog::backdrop { background: rgb(0 0 0 / .55); }
 }
 .tabbar[hidden] { display: none; }
 .tabbar a {
-  flex: 1; max-width: 186px; height: var(--tabbar-h);
+  flex: 1; max-width: 140px; height: var(--tabbar-h);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   color: var(--text-2); text-decoration: none; font-size: .75rem;
 }
@@ -235,6 +235,41 @@ dialog::backdrop { background: rgb(0 0 0 / .55); }
   font-size: 1.35rem; letter-spacing: .18em; text-transform: uppercase;
   background: var(--gold-gradient); -webkit-background-clip: text; background-clip: text; color: transparent;
 }
+
+/* Missões do dia */
+.missions { list-style: none; padding: 0; margin: 8px 0 0; }
+.mission {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 10px 0; border: 0; border-top: 1px solid var(--border); border-radius: 0; background: none; color: var(--text);
+}
+.missions li:first-child .mission { border-top: 0; }
+.mission .check {
+  width: 24px; height: 24px; flex: none; border-radius: 50%; border: 2px solid var(--border);
+  display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--accent-ink);
+}
+.mission.done .check { background: var(--gold-gradient); border-color: transparent; }
+.mission .text { flex: 1; min-width: 0; }
+.mission .text small { display: block; color: var(--text-2); font-size: .78rem; }
+.mission .xp { color: var(--accent); font-size: .78rem; font-weight: 600; }
+.mission:not(.done) .xp { opacity: .5; }
+.validated {
+  margin-top: 12px; padding: 10px 12px; border-radius: 10px;
+  background: rgb(212 175 55 / .12); color: var(--accent-2); font-weight: 700; text-align: center;
+}
+
+/* Jornada */
+.hero { display: flex; gap: 16px; align-items: center; }
+.emblem { width: 96px; height: 108px; flex: none; }
+.hero .division { font-size: 1.3rem; font-weight: 700; margin: 0; }
+.hero .level { font-size: 2rem; font-weight: 800; line-height: 1.1; margin: 8px 0 2px; }
+.attr { margin-top: 14px; }
+.attr .row { font-size: .92rem; }
+.attr.off { opacity: .45; }
+.attr-bar { position: relative; height: 10px; border-radius: 999px; background: var(--surface-2); margin-top: 6px; overflow: hidden; }
+.attr-bar > span { position: absolute; top: 0; bottom: 0; border-radius: 999px; }
+.attr-bar .zero { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--text-2); opacity: .6; }
+.calendar .day.gold { background: var(--gold-gradient); color: var(--accent-ink); font-weight: 700; }
+.legend .gold::before { background: var(--accent); }
 
 /* Seletor de idioma: bandeiras redondas */
 .flags { display: flex; gap: 8px; flex: none; }

@@ -19,11 +19,13 @@ function emptyState() {
     favorites: [],
     recents: [],
     settings: {},
+    // Jornada (Fase 2). cycleStart vazio = começa na data do cadastro.
+    journey: { cycleStart: null, rebirths: 0, cycles: [] },
   };
 }
 
 function emptyDay() {
-  return { entries: [], waterMl: 0, neutral: null, targets: null };
+  return { entries: [], waterMl: 0, neutral: null, targets: null, missions: {} };
 }
 
 function load() {
@@ -154,6 +156,31 @@ export function removeEntry(date, entryId) {
 export function addWater(date, ml) {
   const day = touchDay(date);
   day.waterMl = Math.max(0, (day.waterMl || 0) + ml);
+  save();
+}
+
+// Marca ou desmarca uma missão manual do dia (ex.: 'forca').
+export function toggleMission(date, id) {
+  const day = touchDay(date);
+  day.missions = { ...day.missions, [id]: !day.missions?.[id] };
+  save();
+  return day.missions[id];
+}
+
+export function setFocus(focus) {
+  state.profile = { ...state.profile, focus };
+  save();
+}
+
+// Renascimento: guarda o ciclo encerrado e começa outro amanhã.
+export function rebirth(summary, nextStart) {
+  const j = state.journey;
+  state.journey = {
+    ...j,
+    rebirths: (j.rebirths || 0) + 1,
+    cycles: [...(j.cycles || []), summary],
+    cycleStart: nextStart,
+  };
   save();
 }
 
