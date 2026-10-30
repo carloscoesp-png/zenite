@@ -108,11 +108,12 @@ export function render(root, params) {
   };
   const justValidated = prev && !prev.validated && quest.validated;
 
-  // Água: alerta quando ela é o que falta (dieta e as outras missões automáticas feitas).
+  // Água: alerta quando ela é a missão automática que falta (refeições e proteína feitas).
+  // Não depende da dieta; só diz "valida o dia" se a água realmente completar a validação.
   const waterLeft = Math.max(0, targets.waterMl - water);
   const otherAutoDone = quest.missions.filter((m) => m.auto && m.id !== 'c-water').every((m) => m.done);
-  const waterNudge = date === today && !quest.neutral && waterLeft > 0 && quest.diet && otherAutoDone;
-  const waterValidates = waterNudge && !quest.validated && quest.done + 1 >= quest.need;
+  const waterNudge = date === today && !quest.neutral && waterLeft > 0 && otherAutoDone;
+  const waterValidates = waterNudge && quest.diet && !quest.validated && quest.done + 1 >= quest.need;
   const suggestMl = waterLeft <= 250 ? 250 : 500;
   const waterGoalNow = prev && prev.water < targets.waterMl && water >= targets.waterMl;
   const missing = Math.max(0, quest.need - quest.done);
@@ -134,10 +135,13 @@ export function render(root, params) {
       </ul>
       ${quest.validated
         ? `<div class="validated ${justValidated ? 'burst' : ''}">★ ${t('missions.validated')}</div>`
-        : `<p class="muted small" style="margin:12px 0 0">${[
-          missing ? t(missing === 1 ? 'missions.needOne' : 'missions.need', { n: missing }) : '',
-          quest.diet ? '' : t('missions.needDiet'),
-        ].filter(Boolean).join(' · ')}</p>`}
+        : !missing && !quest.diet
+          // Missões já bastam: o que falta é a dieta. Mostrar a faixa de calorias e onde está agora.
+          ? `<div class="diet-hint">${t('missions.dietOnly', { min: n0(range.min), max: n0(range.max), now: n0(sum.kcal) })}</div>`
+          : `<p class="muted small" style="margin:12px 0 0">${[
+            missing ? t(missing === 1 ? 'missions.needOne' : 'missions.need', { n: missing }) : '',
+            quest.diet ? '' : t('missions.needDietRange', { min: n0(range.min), max: n0(range.max), now: n0(sum.kcal) }),
+          ].filter(Boolean).join(' · ')}</p>`}
       ${editable ? '' : `<p class="hint">${t('missions.locked')}</p>`}
     </section>`;
 

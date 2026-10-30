@@ -152,6 +152,8 @@ const DICT = {
     'water.onlyToValidate': 'Falta só a água: {n} ml para validar o dia',
     'water.onlyToGoal': 'Falta só a água: {n} ml para bater a meta',
     'water.goal': 'Meta de água batida!', 'missions.validatedToast': 'Dia validado! +1 nível',
+    'missions.dietOnly': 'Missões feitas! Para validar, as calorias precisam ficar entre {min} e {max} kcal (agora {now}).',
+    'missions.needDietRange': 'Dieta: entre {min} e {max} kcal (agora {now})',
   },
 
   en: {
@@ -297,6 +299,8 @@ const DICT = {
     'water.onlyToValidate': 'Only water left: {n} ml to validate the day',
     'water.onlyToGoal': 'Only water left: {n} ml to hit your target',
     'water.goal': 'Water target reached!', 'missions.validatedToast': 'Day validated! +1 level',
+    'missions.dietOnly': 'Missions done! To validate, calories need to be between {min} and {max} kcal (now {now}).',
+    'missions.needDietRange': 'Diet: between {min} and {max} kcal (now {now})',
   },
 
   es: {
@@ -442,6 +446,8 @@ const DICT = {
     'water.onlyToValidate': 'Solo falta el agua: {n} ml para validar el día',
     'water.onlyToGoal': 'Solo falta el agua: {n} ml para cumplir la meta',
     'water.goal': '¡Meta de agua cumplida!', 'missions.validatedToast': '¡Día validado! +1 nivel',
+    'missions.dietOnly': '¡Misiones hechas! Para validar, las calorías deben quedar entre {min} y {max} kcal (ahora {now}).',
+    'missions.needDietRange': 'Dieta: entre {min} y {max} kcal (ahora {now})',
   },
 };
 
